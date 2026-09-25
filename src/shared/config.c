@@ -1,5 +1,5 @@
 #include "config.h"
-#include "../shared/quark.h"
+#include "quark.h"
 
 void cvar_register(quark_t* quark, cvar_t* cvar, on_change_t on_change) {
 	cvar->init = cvar->string;

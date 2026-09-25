@@ -265,7 +265,7 @@ static void hit_ground(quark_t* quark, player_t* player, trace_result_t trace) {
     if (player->velocity[1] < -8.0f && player->water_level == 0.0f) {
         float fall_damage = powf(-player->velocity[1], 1.25f);
         fall_damage = 0.0f;
-        player_add_damage(quark, player, fall_damage);
+        player_hurt(quark, player, fall_damage);
 
         if (fall_damage > 0.0f) {
             a_play(quark, &quark->audio, quark->audio.fall_damage_sound,
@@ -522,28 +522,28 @@ static void trace_look_ray(quark_t* quark, player_t* player, camera_t* camera, e
     }
 
     if (player->buttons & PLAYER_BUTTON_INTERACT) {
-        if (player->look_entity != -1) {
+        if (player->vehicle != -1) {
+            player->vehicle = -1;
             player->buttons &= ~PLAYER_BUTTON_INTERACT;
 
-            if (player->vehicle != -1) {
-                player->vehicle = -1;
-                player->buttons &= ~PLAYER_BUTTON_INTERACT;
-            } else if (player->grabbed_mesh != -1) {
-                player->grabbed_mesh = -1;
-                player->buttons &= ~PLAYER_BUTTON_INTERACT;
-            } else {
-                switch (player->look_trace.entity->type) {
-                case ENTITY_MESH: {
-                    if (player->look_trace.entity->data.mesh.enable_physics)
-                        player->grabbed_mesh = player->look_entity;
-                    break;
-                }
-                case ENTITY_VEHICLE: {
-                    player->vehicle = player->look_entity;
-                    break;
-                }
-                default: unreachable(quark);
-                }
+        } else if (player->grabbed_mesh != -1) {
+            player->grabbed_mesh = -1;
+            player->buttons &= ~PLAYER_BUTTON_INTERACT;
+
+        } else if (player->look_entity != -1) {
+            player->buttons &= ~PLAYER_BUTTON_INTERACT;
+
+            switch (player->look_trace.entity->type) {
+            case ENTITY_MESH: {
+                if (player->look_trace.entity->data.mesh.enable_physics)
+                    player->grabbed_mesh = player->look_entity;
+                break;
+            }
+            case ENTITY_VEHICLE: {
+                player->vehicle = player->look_entity;
+                break;
+            }
+            default: unreachable(quark);
             }
         }
     }
@@ -591,7 +591,7 @@ static void tick_grabbed_mesh(quark_t* quark, player_t* player) {
 
     float distance = glm_vec3_distance(player->position, entity->position);
     float radius = bbox_get_enclosing_sphere(&entity->local_bbox);
-    if (distance > radius) {
+    if (distance > radius * 2.0f) {
         vec3 direction;
         glm_vec3_sub(quark->player->position, entity->position, direction);
         glm_normalize(direction);
@@ -618,23 +618,25 @@ void player_tick(quark_t* quark, player_t* player, camera_t* camera, entlist_t* 
 
     update_bbox(quark, player);
 
-    vec3 forward;
-    glm_vec3_copy(camera->forward, forward);
-    forward[1] = 0.0f;
-    glm_vec3_scale(forward, player->move_input[2], forward);
+    if (!player->is_bot) {
+        vec3 forward;
+        glm_vec3_copy(camera->forward, forward);
+        forward[1] = 0.0f;
+        glm_vec3_scale(forward, player->move_input[2], forward);
 
-    vec3 right;
-    glm_vec3_copy(camera->right, right);
-    right[1] = 0.0f;
-    glm_vec3_scale(right, player->move_input[0], right);
+        vec3 right;
+        glm_vec3_copy(camera->right, right);
+        right[1] = 0.0f;
+        glm_vec3_scale(right, player->move_input[0], right);
 
-    vec3 up;
-    glm_vec3_copy(camera->up, up);
-    glm_vec3_scale(up, player->move_input[1], up);
+        vec3 up;
+        glm_vec3_copy(camera->up, up);
+        glm_vec3_scale(up, player->move_input[1], up);
 
-    glm_vec3_add(player->target_dir, forward, player->target_dir);
-    glm_vec3_add(player->target_dir, right, player->target_dir);
-    glm_vec3_add(player->target_dir, up, player->target_dir);
+        glm_vec3_add(player->target_dir, forward, player->target_dir);
+        glm_vec3_add(player->target_dir, right, player->target_dir);
+        glm_vec3_add(player->target_dir, up, player->target_dir);
+    }
 
     player->target_speed = 0.0f;
     if (glm_vec3_dot(player->target_dir, player->target_dir) != 0.0f) {
@@ -694,7 +696,7 @@ void player_render(quark_t* quark, player_t* player, renderer_t* renderer) {
     player_render_item(quark, player, renderer);
 }
 
-void player_add_damage(quark_t* quark, player_t* player, float damage) {
+void player_hurt(quark_t* quark, player_t* player, float damage) {
     if (player_is_dead(player) || damage < 0.0f) return;
 
     player->health -= damage;

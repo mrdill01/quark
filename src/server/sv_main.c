@@ -35,8 +35,8 @@ void sv_stop(quark_t* quark, server_t* server) {
     info(quark, "sv_stop()...");
 
     enet_host_destroy(server->host);
-    server->host = NULL;
     server->is_running = false;
+    server->host = NULL;
     for (size_t i = 0; i < NET_MAX_PLAYERS; i++) {
         sv_client_t* client = server->clients[i];
         if (client) free(client);
@@ -82,7 +82,6 @@ void sv_send(quark_t* quark, server_t* server) {
         if (!client || !client->peer) continue;
 
         sv_write_byte(quark, server, client, SVC_NOTHING);
-
     }
 
     sv_flush(quark, server);
@@ -114,7 +113,7 @@ void sv_recv(quark_t* quark, server_t* server, sv_client_t* client, ENetPacket* 
         info(quark, "[server] %s set name to '%s'", ip, name);
 
         sv_write_byte(quark, server, client, SVC_SPAWN_ID);
-        sv_write_byte(quark, server, client, 0);
+        sv_write_byte(quark, server, client, client->id);
         break;
     }
     }

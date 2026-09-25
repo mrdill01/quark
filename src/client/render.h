@@ -260,6 +260,8 @@ typedef struct {
     render_stats_t stats;
 } renderer_t;
 
+/* r_camera.c */
+
 void camera_init(quark_t* quark, camera_t* camera);
 void camera_tick(quark_t* quark, camera_t* camera);
 void camera_add_pitch(camera_t* camera, float pitch);
@@ -268,12 +270,16 @@ void camera_add_roll(camera_t* camera, float roll);
 void camera_get_projection_matrix(camera_t* camera, int width, int height, mat4 proj);
 void camera_get_view_matrix(camera_t* camera, mat4 view);
 
+/* r_shader.c */
+
 shader_t* shader_new(quark_t* quark,
     const char* name,
     const char* vs, const char* vname,
     const char* fs, const char* fname);
 shader_t* shader_load(quark_t* quark, const char* name, const char* vpath, const char* fpath);
 void shader_free(quark_t* quark, shader_t* shader);
+
+/* r_mesh.c */
 
 mesh_buffer_t* mesh_buffer_new(quark_t* quark, size_t num_vertices, size_t num_indices);
 void mesh_buffer_upload(quark_t* quark, mesh_buffer_t* buffer);
@@ -285,13 +291,24 @@ mesh_t* mesh_load(quark_t* quark, const char* path);
 mesh_t* mesh_copy(quark_t* quark, const mesh_t* original);
 void mesh_free(quark_t* quark, mesh_t* mesh);
 void mesh_deform(
-    quark_t* quark, mesh_t* mesh, vec3 position, vec3 point, vec3 normal, float radius, float distance);
+    quark_t* quark,
+    mesh_t* mesh,
+    vec3 position,
+    quat rotation,
+    vec3 point,
+    vec3 direction,
+    float radius,
+    float distance);
+
+/* r_texture.c */
 
 texture_t* texture_new(quark_t* quark, int width, int height, uint8_t* data,
     texture_format_t format, texture_filter_t filter);
 texture_t* texture_load(quark_t* quark, const char* path, texture_filter_t filter);
 texture_t* texture_load_cubemap(quark_t* quark, const char* paths[6]);
 void texture_free(quark_t* quark, texture_t* texture);
+
+/* r_material.c */
 
 material_t* material_load(quark_t* quark,
     const char* name,
@@ -304,12 +321,16 @@ material_t* material_load(quark_t* quark,
     int phys_mat);
 void material_free(quark_t* quark, material_t* material);
 
+/* r_framebuffer.c */
+
 framebuffer_t* framebuffer_new(quark_t* quark);
 void framebuffer_add_texture(
     quark_t* quark, framebuffer_t* framebuffer, int width, int height, texture_format_t format);
 void framebuffer_add_depth_buffer(quark_t* quark, framebuffer_t* framebuffer, int width, int height);
 void framebuffer_finish(quark_t* quark, framebuffer_t* framebuffer);
 void framebuffer_free(framebuffer_t* framebuffer);
+
+/* r_ui.c */
 
 void ui_init(quark_t* quark, ui_t* ui);
 
@@ -333,19 +354,15 @@ bool ui_draw_button(
     quark_t* quark, ui_t* ui, const char* message, vec2 position, vec2 size);
 void ui_render(quark_t* quark, ui_t* ui, renderer_t* renderer);
 
-void r_init(quark_t* quark, renderer_t* renderer);
-void r_free(quark_t* quark, renderer_t* renderer);
-void r_tick(quark_t* quark, renderer_t* renderer);
-
-void r_reload(quark_t* quark, renderer_t* renderer);
-void r_on_resize(quark_t* quark);
-void r_on_toggle_fullscreen(quark_t* quark);
+/* r_line.c */
 
 void r_add_line(quark_t* quark,
     renderer_t* renderer, vec3 start, vec3 end, vec4 color, float decay_time);
 void r_add_line_box(quark_t* quark,
     renderer_t* renderer, const bbox_t* box, vec4 color, float decay_time);
 void r_render_lines(quark_t* quark, renderer_t* renderer);
+
+/* r_partfx.c */
 
 void r_add_partfx_shoot_hit(
     quark_t* quark, renderer_t* renderer, trace_result_t trace);
@@ -379,6 +396,16 @@ particle_t* r_add_particle(
 void r_tick_particles(quark_t* quark, renderer_t* renderer);
 void r_render_particles(quark_t* quark, renderer_t* renderer);
 int r_get_particle_count(quark_t* quark, renderer_t* renderer);
+
+/* r_main.c */
+
+void r_init(quark_t* quark, renderer_t* renderer);
+void r_free(quark_t* quark, renderer_t* renderer);
+void r_tick(quark_t* quark, renderer_t* renderer);
+
+void r_reload(quark_t* quark, renderer_t* renderer);
+void r_on_resize(quark_t* quark);
+void r_on_toggle_fullscreen(quark_t* quark);
 
 void r_add_drawcall(renderer_t* renderer, drawcall_t drawcall);
 void r_clear_drawcalls(renderer_t* renderer);

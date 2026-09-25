@@ -84,6 +84,7 @@ void r_render_lines(quark_t* quark, renderer_t* renderer) {
         if (line->is_free) continue;
         if (quark->time - line->spawn_time >= line->decay_time) {
             line->is_free = true;
+            continue;
         }
 
         r_set_vec4(quark, renderer, "color", line->color);

@@ -58,7 +58,7 @@ void entity_tick_mesh(quark_t* quark, entity_t* entity, entity_mesh_t* mesh) {
 		speed = glm_vec3_dot(entity->velocity, entity->velocity);
 
 		if (speed > 0.001f) {
-			ray_t ray;
+			/*ray_t ray;
 			glm_vec3_copy(entity->position, ray.origin);
 			glm_vec3_copy(entity->velocity, ray.dir);
 			glm_vec3_norm(ray.dir);
@@ -88,7 +88,7 @@ void entity_tick_mesh(quark_t* quark, entity_t* entity, entity_mesh_t* mesh) {
 
 			vec3 end;
 			point_on_ray(ray, speed * quark->dt, end);
-			r_add_line(quark, &quark->renderer, entity->position, end, COLOR_RED, 0.0f);
+			r_add_line(quark, &quark->renderer, entity->position, end, COLOR_RED, 0.0f);*/
 
     		//entity->velocity[1] -= PHYS_GRAVITY * quark->dt;
 		} else {

@@ -7,9 +7,8 @@ void entity_init_vehicle(quark_t* quark,
     entity_t* entity = NULL;
 	entity_init_common(quark, name, ENTITY_VEHICLE, position, &entity);
     entity->data.vehicle.mesh = mesh;
-    for (int i = 0; i < MAX_MATERIALS; i++) {
+    for (int i = 0; i < MAX_MATERIALS; i++)
 		entity->data.vehicle.materials[i] = NULL;
-	}
 	entity->data.vehicle.type = type;
 
     switch (type) {
@@ -29,7 +28,7 @@ void entity_init_vehicle(quark_t* quark,
 void entity_tick_vehicle(quark_t* quark, entity_t* entity, entity_vehicle_t* vehicle) {
     switch (vehicle->type) {
     case VEHICLE_CAR: {
-        //entity_tick_vehicle_car(quark, entity, &vehicle->data.car);
+        entity_tick_vehicle_car(quark, entity, &vehicle->data.car);
         break;
     }
     case VEHICLE_HELICOPTER: {

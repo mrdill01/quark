@@ -4,7 +4,7 @@
 #include "mathlib.h"
 #include "physics.h"
 #include "../client/editor.h"
-#include "../client/item.h"
+#include "item.h"
 
 typedef struct quark_t quark_t;
 typedef struct camera_t camera_t;
@@ -117,7 +117,7 @@ void player_input(quark_t* quark, player_t* player);
 void player_tick(quark_t* quark, player_t* player, camera_t* camera, entlist_t* entlist);
 void player_render(quark_t* quark, player_t* player, renderer_t* renderer);
 
-void player_add_damage(quark_t* quark, player_t* player, float damage);
+void player_hurt(quark_t* quark, player_t* player, float damage);
 bool player_is_dead(player_t* player);
 void player_respawn(quark_t* quark, player_t* player);
 void player_teleport(quark_t* quark, player_t* player, vec3 destination);

@@ -2,11 +2,12 @@
 #include "quark.h"
 
 float entity_terrain_get_height(quark_t* quark, entity_t* entity, float u, float v) {
+    if (u < 0.0f || v < 0.0f || u > 1.0f || v > 1.0f) return 0.0f;
     if (entity->type != ENTITY_TERRAIN || !entity->data.terrain.heightmap) return 0.0f;
     entity_terrain_t* terrain = &entity->data.terrain;
-
     //return random(0.0f, 1.0f) * entity->scale[1];
-    size_t index = ((v * terrain->heightmap->width) + u) * 4;
+    size_t index = (((v / terrain->heightmap->height) * terrain->heightmap->width) +
+        (u / terrain->heightmap->width)) * 4;
     return terrain->heightmap->data[index] / 255.0f;
 }
 

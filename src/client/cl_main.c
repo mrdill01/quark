@@ -26,7 +26,7 @@ void cl_connect(quark_t* quark, client_t* client, const char* ip, int port) {
 
     ENetAddress address = {0};
     enet_address_set_host(&address, ip);
-    address.port = NET_PORT;
+    address.port = port;
 
     info(quark, "[client] connecting to %s:%d...", ip, port);
 
@@ -47,6 +47,7 @@ void cl_disconnect(quark_t* quark, client_t* client) {
     enet_host_destroy(client->host);
     client->peer = NULL;
     client->host = NULL;
+    client->has_sent_name = false;
     info(quark, "[client] disconnected!");
 }
 

@@ -204,6 +204,7 @@ void mesh_deform(
     quark_t* quark,
     mesh_t* mesh,
     vec3 position,
+    quat rotation,
     vec3 point,
     vec3 direction,
     float radius,
@@ -218,6 +219,8 @@ void mesh_deform(
                 position[0] + buffer->vertices[v + 0],
                 position[1] + buffer->vertices[v + 1],
                 position[2] + buffer->vertices[v + 2]};
+
+            glm_quat_rotatev(rotation, vertex_ws, vertex_ws);
 
             float falloff = radius / glm_vec3_distance(point, vertex_ws);
             falloff = pow(falloff, 50.0f);

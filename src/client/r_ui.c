@@ -377,16 +377,22 @@ static void draw_inventory(quark_t* quark, ui_t* ui) {
     }
 }
 
+static void draw_crosshair(quark_t* quark, ui_t* ui, player_t* player) {
+    if (player->buttons & PLAYER_BUTTON_AIM ||
+        player->move_mode == MOVE_SPRINT ||
+        player->grabbed_mesh != -1)
+        return;
+    
+    vec2 size = {20.0f, 20.0f};
+    vec2 position = {
+        r_width.value / 2.0f - size[0] / 2.0f,
+        r_height.value / 2.0f - size[1] / 2.0f};
+    ui_draw_texture(quark, ui, ui->crosshair, position, size, COLOR_WHITE);
+}
+
 static void draw_hud(quark_t* quark, ui_t* ui, player_t* player) {
     if (!r_hud.value) return;
-    
-    if (!(player->buttons & PLAYER_BUTTON_AIM) && player->move_mode != MOVE_SPRINT) {
-        vec2 size = {20.0f, 20.0f};
-        vec2 position = {
-            r_width.value / 2.0f - size[0] / 2.0f,
-            r_height.value / 2.0f - size[1] / 2.0f};
-        ui_draw_texture(quark, ui, ui->crosshair, position, size, COLOR_WHITE);
-    }
+    draw_crosshair(quark, ui, player);
 
     item_t* item = inventory_get_item(quark, &quark->player->inventory);
     if (item && !edit_mode.value) {

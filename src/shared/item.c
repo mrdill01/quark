@@ -1,5 +1,5 @@
 #include "item.h"
-#include "../shared/quark.h"
+#include "quark.h"
 
 item_t* item_new(quark_t* quark,
     item_type_t type,
@@ -65,7 +65,7 @@ void weapon_fire(quark_t* quark, weapon_t* weapon, player_t* player) {
         weapon->recoil * 0.04f : weapon->recoil;
 
     if (weapon->has_muzzle_flash) {
-        vec3 color = {48.0f, 32.0f, 32.0f};
+        vec3 color = {96.0f, 96.0f, 32.0f};
 
         vec3 position;
         player_get_item_position_world_space(quark, player, position);
@@ -120,6 +120,13 @@ void weapon_fire(quark_t* quark, weapon_t* weapon, player_t* player) {
             glm_quat_copy(camera->rotation, projectile->rotation);
             entlist_add(quark, &quark->map.entlist, projectile);
 
+            vec3 color = {128.0f, 128.0f, 64.0f};
+            entity_t* light = NULL;
+            entity_init_point_light(quark, "rocket light", ray.origin, color, 0.0f, &light);
+            int light_id = entlist_add(quark, &quark->map.entlist, light);
+
+            entity_add_child(quark, projectile, light_id);
+
         } else {
             float max_distance = 50.0f;
             trace_result_t trace;
@@ -136,7 +143,7 @@ void weapon_fire(quark_t* quark, weapon_t* weapon, player_t* player) {
                 }
 
                 if (trace.player_id != -1) {
-                    player_add_damage(quark, quark->players[trace.player_id], weapon->damage);
+                    player_hurt(quark, quark->players[trace.player_id], weapon->damage);
                 }
             }
 
@@ -225,7 +232,7 @@ void inventory_init(quark_t* quark, inventory_t* inventory) {
     weapon->mag_size = 30;
     weapon->ammo_loaded = weapon->mag_size;
     weapon->ammo_unloaded = weapon->mag_size * 3;
-    weapon->reload_time = 3.4f;
+    weapon->reload_time = 3.1f;
     weapon->is_reloading = false;
     weapon->reload_start = 0.0f;
     weapon->has_muzzle_flash = true;

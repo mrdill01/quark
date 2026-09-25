@@ -1,7 +1,7 @@
 #ifndef SBOX_H
 #define SBOX_H
 
-#include "../client/config.h"
+#include "config.h"
 #include "../client/console.h"
 #include "../client/profiler.h"
 #include "../server/server.h"
@@ -25,7 +25,7 @@
 
 #define QUARK_VERSION "quark alpha 1.0"
 #define QUARK_DEBUG
-//#define SBOX_NO_AUDIO
+//#define QUARK_NO_AUDIO
 
 #ifdef QUARK_DEBUG
 #define unreachable(quark) error(quark, "unreachable code entered in %s:%d", __FILE__, __LINE__);

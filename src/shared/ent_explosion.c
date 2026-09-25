@@ -17,6 +17,11 @@ void entity_init_explosion(quark_t* quark,
 }
 
 void entity_tick_explosion(quark_t* quark, entity_t* entity, entity_explosion_t* explosion) {
+    entity_t* point_light = NULL;
+    vec3 color = {128.0f, 128.0f, 0.0f};
+    entity_init_point_light(quark, "explosion light", entity->position, color, 0.25f, &point_light);
+    entlist_add(quark, &quark->map.entlist, point_light);
+
     r_add_partfx_explosion(quark, &quark->renderer, entity->position, explosion->radius);
     a_play(quark, &quark->audio, quark->audio.explosion_sound, entity->position, random(0.85f, 1.15f));
 
@@ -36,7 +41,7 @@ void entity_tick_explosion(quark_t* quark, entity_t* entity, entity_explosion_t*
             glm_vec3_add(player->velocity, force_vec, player->velocity);
 
             if (!player->is_me)
-                player_add_damage(quark, player, explosion->damage * factor);
+                player_hurt(quark, player, explosion->damage * factor);
         }
     }
 
@@ -60,7 +65,13 @@ void entity_tick_explosion(quark_t* quark, entity_t* entity, entity_explosion_t*
 
                 float amount = 0.32f;
                 mesh_deform(quark,
-                    mesh, other->position, entity->position, direction, explosion->radius, amount);
+                    mesh,
+                    other->position,
+                    other->rotation,
+                    entity->position,
+                    direction,
+                    explosion->radius,
+                    amount);
             }
         }
     }

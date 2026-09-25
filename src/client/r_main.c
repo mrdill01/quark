@@ -1,6 +1,6 @@
 #include "render.h"
 #include "../shared/quark.h"
-#include "item.h"
+#include "../shared/item.h"
 
 #include "../../include/gl.h"
 

@@ -1,8 +1,8 @@
 #ifndef ITEM_H
 #define ITEM_H
 
-#include "render.h"
-#include "audio.h"
+#include "../client/render.h"
+#include "../client/audio.h"
 
 #include <stdbool.h>
 #include <stddef.h>

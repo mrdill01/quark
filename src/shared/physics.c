@@ -74,13 +74,12 @@ bool phys_line_trace(
                     (entity->world_bbox.max[0] - entity->world_bbox.min[0]);
                 float v = (trace.point[2] - entity->world_bbox.min[2]) /
                     (entity->world_bbox.max[2] - entity->world_bbox.min[2]);
-
-                u /= entity->scale[0];
-                v /= entity->scale[2];
+                printf("%g %g\n", u, v);
+                //u /= entity->scale[0];
+                //v /= entity->scale[2];
                 
                 float height = entity_terrain_get_height(quark, entity, u, v);
 
-                    printf("%g\n", height);
                 //trace.distance = height;
                 trace.point[1] = height * entity->scale[1];
             }

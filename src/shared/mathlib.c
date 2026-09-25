@@ -160,6 +160,11 @@ void point_on_ray(ray_t ray, float t, vec3 end) {
 }
 
 bool raycast_bbox(ray_t ray, const bbox_t* box, float* t, float tmax) {
+    if (bbox_point_intersects(box, ray.origin)) {
+        *t = 0.0f;
+        return true;
+    }
+
     float tmin = -INFINITY;
 
     float inv_dir_x = 1.0f / ray.dir[0];

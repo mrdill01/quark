@@ -70,9 +70,11 @@ typedef enum {
 } vehicle_type_t;
 
 typedef struct {
+    vec3 target_dir;
 } veh_car_t;
 
 typedef struct {
+    vec3 target_dir;
 } veh_helicopter_t;
 
 typedef struct {
@@ -106,13 +108,18 @@ typedef struct {
     int id;
     char* name;
     entity_type_t type;
+
     vec3 position;
     quat rotation;
     vec3 scale;
     vec3 velocity;
-    int parent_id;
+
+    int* children;
+    size_t nchildren;
+
     bbox_t local_bbox;
     bbox_t world_bbox;
+
     float spawn_time;
 
     union {
@@ -174,8 +181,11 @@ void entity_tick_projectile(quark_t* quark, entity_t* entity, entity_projectile_
 void entity_tick_explosion(quark_t* quark, entity_t* entity, entity_explosion_t* explosion);
 void entity_tick_pickup(quark_t* quark, entity_t* entity, entity_pickup_t* pickup);
 void entity_tick_vehicle(quark_t* quark, entity_t* entity, entity_vehicle_t* vehicle);
+void entity_tick_vehicle_car(quark_t* quark, entity_t* entity, veh_car_t* heli);
 void entity_tick_vehicle_helicopter(quark_t* quark, entity_t* entity, veh_helicopter_t* heli);
 void entity_tick_point_light(quark_t* quark, entity_t* entity, entity_point_light_t* point_light);
+
+void entity_add_child(quark_t* quark, entity_t* entity, int child_id);
 
 void entity_mesh_set_material(quark_t* quark, entity_t* entity, material_t* material, int slot);
 void entity_pickup_set_material(quark_t* quark, entity_t* entity, material_t* material, int slot);
@@ -192,7 +202,7 @@ bool entity_get_drawcall(quark_t* quark, entity_t* entity, drawcall_t* drawcall)
 void entlist_init(quark_t* quark, entlist_t* entlist);
 void entlist_free(quark_t* quark, entlist_t* entlist);
 void entlist_tick(quark_t* quark, entlist_t* entlist);
-void entlist_add(quark_t* quark, entlist_t* entlist, entity_t* entity);
+int entlist_add(quark_t* quark, entlist_t* entlist, entity_t* entity);
 void entlist_remove(quark_t* quark, entlist_t* entlist, entity_t* entity);
 entity_t* entlist_find_by_name(quark_t* quark, entlist_t* entlist, const char* name);
 

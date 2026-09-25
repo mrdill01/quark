@@ -1111,9 +1111,8 @@ void map_load(quark_t* quark, map_t* map) {
             for (int k = -3; k <= 3; k++) {
                 entity_init_pickup(quark, "coin",
                     (vec3){x + j, start[1] + 0.1f, z + k},
-                    coin_mesh, quark->audio.pickup_coin_sound, &entity);
+                    coin_mesh, PICKUP_TYPE_COIN, quark->audio.pickup_coin_sound, &entity);
                 entity_pickup_set_material(quark, entity, coin, 0);
-                entity->data.pickup.is_coin = true;
                 entlist_add(quark, &map->entlist, entity);
                 map->coins++;
             }
@@ -1164,6 +1163,6 @@ void map_tick(quark_t* quark, map_t* map) {
         player_t* player = quark->players[i];
         if (!player) continue;
         if (player->position[1] < -100.0f)
-            player_add_damage(quark, player, player->health);
+            player_hurt(quark, player, player->health);
     }
 }

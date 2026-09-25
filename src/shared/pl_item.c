@@ -178,14 +178,13 @@ void player_render_item(quark_t* quark, player_t* player, renderer_t* renderer) 
 
 void player_get_item_position_world_space(quark_t* quark, player_t* player, vec3 position) {
     if (!position) return;
-    player_get_top_position(quark, player, position);
-    position[1] -= 0.1f;
+    glm_vec3_copy(quark->renderer.camera.position, position);
 
     vec3 forward;
     glm_vec3_copy(quark->renderer.camera.forward, forward);
     glm_vec3_scale(forward, player->item_position[2] + player->item_anim[2], forward);
     glm_vec3_add(position, forward, position);
-    
+
     vec3 right;
     glm_vec3_copy(quark->renderer.camera.right, right);
     glm_vec3_scale(right, player->item_position[0] + player->item_anim[0], right);

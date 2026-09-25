@@ -1,7 +1,7 @@
 #include "command.h"
-#include "../shared/quark.h"
-#include "console.h"
-#include "../shared/net.h"
+#include "quark.h"
+#include "../client/console.h"
+#include "net.h"
 
 cmd_t help = {"help", "[cmd/cvar]", "Shows a help message for the console.", false};
 cmd_t cmdlist = {"cmdlist", "", "Prints all commands to the console.", false};
@@ -56,7 +56,7 @@ void cmd_run(quark_t* quark, const char* name, const char** args, int argc) {
     }
 
     if (cmd->is_cheat && !sv_cheats.value) {
-        error(quark, "the %s command requires sv_cheats to be set to 1", cmd->name);
+        error(quark, "the %s command requires sv_cheats to be set to 1.", cmd->name);
         return;
     }
 
@@ -116,6 +116,7 @@ void cmd_run(quark_t* quark, const char* name, const char** args, int argc) {
             error(quark, "cvar not found: %s", args[0]);
             return;
         }
+        
         cvar_set(quark, args[0], cvar->init);
         info(quark, "reset cvar %s", cvar->name);
     }
@@ -146,7 +147,7 @@ void cmd_run(quark_t* quark, const char* name, const char** args, int argc) {
         }
 
         float damage = atof(args[0]);
-        player_add_damage(quark, quark->player, damage);
+        player_hurt(quark, quark->player, damage);
         return;
     }
 
@@ -170,6 +171,8 @@ void cmd_run(quark_t* quark, const char* name, const char** args, int argc) {
                 }
             }
         }
+
+        return;
     }
 
     if (strcmp(cmd->name, "host") == 0) {

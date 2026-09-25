@@ -1,8 +1,8 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
-#include "config.h"
-#include "command.h"
+#include "../shared/config.h"
+#include "../shared/command.h"
 
 #include <stddef.h>
 

@@ -11,13 +11,18 @@ void entity_init_common(
 	entity->name = malloc(strlen(name) + 1);
 	strcpy(entity->name, name);
 	entity->type = type;
+
 	glm_vec3_copy(position, entity->position);
     glm_quat_identity(entity->rotation);
 	glm_vec3_copy((vec3){1.0f, 1.0f, 1.0f}, entity->scale);
 	glm_vec3_zero(entity->velocity);
-	entity->parent_id = -1;
+
+	entity->children = NULL;
+	entity->nchildren = 0;
+
 	entity->local_bbox = (bbox_t){0};
 	entity->world_bbox = (bbox_t){0};
+
 	entity->spawn_time = quark->time;
 
 	*out = entity;
@@ -45,6 +50,13 @@ void entity_free(quark_t* quark, entity_t* entity) {
 	if (entity->name)
 		free(entity->name);
     free(entity);
+}
+
+void entity_add_child(quark_t* quark, entity_t* entity, int child_id) {
+	if (!entity || child_id == -1) return;
+
+	entity->children = realloc(entity->children, (entity->nchildren + 1) * sizeof(int));
+	entity->children[entity->nchildren++] = child_id;
 }
 
 mesh_t* entity_get_mesh(quark_t* quark, entity_t* entity) {
@@ -182,6 +194,13 @@ void entlist_tick(quark_t* quark, entlist_t* entlist) {
 	for (size_t i = 0; i < entlist->len; i++) {
 		entity_t* entity = entlist->ents[i];
 		if (!entity) continue;
+
+		for (int i = 0; i < entity->nchildren; i++) {
+			entity_t* child = entlist->ents[entity->children[i]];
+			if (!child) continue;
+			glm_vec3_copy(entity->position, child->position);
+		}
+
 		compute_bounding_box(quark, entity);
 
 		switch (entity->type) {
@@ -216,31 +235,41 @@ void entlist_tick(quark_t* quark, entlist_t* entlist) {
 	prof_end(quark, &quark->prof);
 }
 
-void entlist_add(quark_t* quark, entlist_t* entlist, entity_t* entity) {
-	if (!entity) return;
-	int slot = -1;
+int entlist_add(quark_t* quark, entlist_t* entlist, entity_t* entity) {
+	int id = -1;
+
+	if (!entity) return id;
 
 	for (int i = 0; i < entlist->len; i++) {
 		entity_t* entity = entlist->ents[i];
 		if (!entity) {
-			slot = i;
+			id = i;
 			break;
 		}
 	}
 
-	if (slot == -1) {
+	if (id == -1) {
 		entlist->ents = realloc(entlist->ents, sizeof(entity_t*) * (entlist->len + 1));
 		entlist->ents[entlist->len++] = entity;
-		slot = entlist->len - 1;
+		id = entlist->len - 1;
 	} else {
-		entlist->ents[slot] = entity;
+		entlist->ents[id] = entity;
 	}
 
-	entity->id = slot;
+	entity->id = id;
+	return id;
 }
 
 void entlist_remove(quark_t* quark, entlist_t* entlist, entity_t* entity) {
 	if (!entity || entity->id == -1) return;
+
+	for (int i = 0; i < entity->nchildren; i++) {
+		entity_t* child = entlist->ents[entity->children[i]];
+		if (!child) continue;
+		entlist->ents[child->id] = NULL;
+		entity_free(quark, child);
+	}
+
 	entlist->ents[entity->id] = NULL;
 	entity_free(quark, entity);
 }
