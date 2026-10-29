@@ -8,6 +8,7 @@
 #include <time.h>
 
 #include "../../include/gl.h"
+#include "../../include/stb_image.h"
 
 bool init(quark_t* quark);
 void tick(quark_t* quark);
@@ -24,8 +25,6 @@ int main(int argc, char* argv[]) {
     cmd_run(&quark, "host", NULL, 0);
     const char* args[] = {"127.0.0.1", "25565"};
     cmd_run(&quark, "connect", args, 2);
-
-    quark_set_progress(&quark, "connecting...");
     #endif
 
     while (quark.running) {

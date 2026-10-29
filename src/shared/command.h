@@ -9,6 +9,7 @@ typedef struct cmd_t {
     const char* name;
     const char* usage;
     const char* desc;
+    bool requires_admin;
     bool is_cheat;
     struct cmd_t* next;
 } cmd_t;
@@ -25,6 +26,8 @@ extern cmd_t host;
 extern cmd_t connect_;
 extern cmd_t disconnect;
 extern cmd_t quit;
+extern cmd_t savemap;
+extern cmd_t map;
 
 void cmd_init(quark_t* quark);
 void cmd_register(quark_t* quark, cmd_t* cmd);

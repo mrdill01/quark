@@ -20,12 +20,17 @@ typedef enum {
     ITEM_WEAPON,
 } item_type_t;
 
+typedef enum {
+    WEAPON_TYPE_RAYCAST,
+    WEAPON_TYPE_PROJECTILE,
+    WEAPON_TYPE_MELEE,
+} weapon_type_t;
+
 typedef struct {
     sound_t* fire_sound;
     float fire_rate;
     float last_fire;
-    float min_spread;
-    float max_spread;
+    float spread;
     float recoil;
     float damage;
     int bullets;

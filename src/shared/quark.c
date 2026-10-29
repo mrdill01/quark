@@ -19,13 +19,14 @@ cvar_t sv_respawn_time = {"sv_respawn_time", "3.0f", true, false, "How long for 
 cvar_t sv_destruction = {"sv_destruction", "1", true, true,
 	"Allow the map to be destroyed by explosions."};
 cvar_t sv_inf_ammo = {"sv_inf_ammo", "1", true, true, "Enables infinite ammo."};
+cvar_t sv_no_reload = {"sv_no_reload", "1",true, true, "Enables skipping reloading."};
 cvar_t sv_random_seed = {"sv_random_seed", "12345", true, false, "Random seed value."};
 cvar_t r_width = {"r_width", "960.0f", true, false, "Renderer width."};
 cvar_t r_height = {"r_height", "540.0f", true, false, "Renderer height."};
 cvar_t r_scale = {"r_scale", "0.45f", true, false, "Resolution scaling."};
 cvar_t r_fullscreen = {"r_fullscreen", "0", true, false, "Fullscreen."};
 cvar_t r_vsync = {"r_vsync", "0", true, false, "Vertical sync."};
-cvar_t r_fov = {"r_fov", "100.0f", true, false, "Field-of-view."};
+cvar_t r_fov = {"r_fov", "75.0f", true, false, "Field-of-view."};
 cvar_t r_shadows = {"r_shadows", "1", true, false, "Enable shadows."};
 cvar_t r_shadow_res = {"r_shadow_res", "1024.0", true, false, "Shadow resolution."};
 cvar_t r_particles = {"r_particles", "1.0", true, false, "Particle amount multiplier."};
@@ -47,6 +48,7 @@ cvar_t r_debug_buffer = {"r_debug_buffer", "0", true, false,
 cvar_t a_device = {"a_device", "(null)", true, false, "Audio output device (default (null))."};
 cvar_t a_volume = {"a_volume", "0.2f", true, false, "Audio volume."};
 cvar_t m_sens = {"m_sens", "10.0f", true, false, "Mouse sensitivity."};
+cvar_t scoreboard = {"scoreboard", "0", false, false, "Show the scoreboard."};
 cvar_t console = {"console", "0", true, false, "Show the developer console."};
 cvar_t profiler = {"profiler", "0", true, false, "Shows the performance profiler."};
 cvar_t noclip = {"noclip", "0", true, true, "Enables flight / disables collision."};
@@ -59,7 +61,7 @@ void quark_init(quark_t* quark) {
 	info(quark, "%s", QUARK_VERSION);
 
 	#ifdef QUARK_DEBUG
-	info(quark, "DEBUG BUILD (undefine SBOX_DEBUG for release)");
+	info(quark, "DEBUG BUILD (undefine QUARK_DEBUG for release)");
 	#endif
 
     time_t current_time = time(NULL);
@@ -74,6 +76,7 @@ void quark_init(quark_t* quark) {
     cvar_register(quark, &sv_respawn_time, NULL);
     cvar_register(quark, &sv_destruction, NULL);
     cvar_register(quark, &sv_inf_ammo, NULL);
+	cvar_register(quark, &sv_no_reload, NULL);
     cvar_register(quark, &sv_random_seed, NULL);
     cvar_register(quark, &cl_name, NULL);
     cvar_register(quark, &r_width, NULL);
@@ -98,6 +101,7 @@ void quark_init(quark_t* quark) {
     cvar_register(quark, &a_device, NULL);
     cvar_register(quark, &a_volume, NULL);
     cvar_register(quark, &m_sens, NULL);
+    cvar_register(quark, &scoreboard, NULL);
     cvar_register(quark, &console, NULL);
     cvar_register(quark, &profiler, NULL);
     cvar_register(quark, &noclip, NULL);
@@ -109,6 +113,7 @@ void quark_init(quark_t* quark) {
 
 	cfg_write(quark, DEFAULT_CFG_PATH);
 
+	quark->progress_title[0] = '\0';
 	quark->progress_text[0] = '\0';
 	
 	quark->running = true;
@@ -140,11 +145,12 @@ void quark_init(quark_t* quark) {
 	quark->materials = NULL;
 
 	net_init(quark);
+	phys_init(quark, &quark->physics);
 	sv_init(quark, &quark->server);
 	cl_init(quark, &quark->client);
 
 	quark->ui_state = UI_STATE_MAIN_MENU;
-	gm_start(quark, &quark->gm, GAME_MODE_CTF);
+	gm_start(quark, &quark->gm, GAME_MODE_CTT);
 
 	for (int i = 0; i < NET_MAX_PLAYERS; i++)
 		quark->players[i] = NULL;
@@ -154,6 +160,7 @@ void quark_init(quark_t* quark) {
 void quark_free(quark_t* quark) {
 	cl_disconnect(quark, &quark->client);
 	sv_stop(quark, &quark->server);
+	phys_free(quark, &quark->physics);
     map_free(quark, &quark->map);
 	con_free(quark, &quark->console);
 	net_free(quark);
@@ -206,7 +213,7 @@ void quark_reload_resources(quark_t* quark) {
 	quark->renderer.ssao_shader = shader_load(quark,
         "ssao", "res/shaders/ssao.vs", "res/shaders/ssao.fs");
 	
-	map_load(quark, &quark->map);
+	map_create_default(quark, &quark->map);
 
 	info(quark, "resources reloaded!");
 }

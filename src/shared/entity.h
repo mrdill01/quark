@@ -1,7 +1,8 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-#include "../shared/mathlib.h"
+#include "mathlib.h"
+#include "physics.h"
 #include "../client/render.h"
 
 #include <stddef.h>
@@ -120,6 +121,8 @@ typedef struct {
     bbox_t local_bbox;
     bbox_t world_bbox;
 
+    rigid_body_t* body;
+
     float spawn_time;
 
     union {
@@ -198,6 +201,8 @@ mesh_t* entity_get_mesh(quark_t* quark, entity_t* entity);
 void entity_get_materials(quark_t* quark, entity_t* entity,
     material_t** materials, size_t* nmaterials);
 bool entity_get_drawcall(quark_t* quark, entity_t* entity, drawcall_t* drawcall);
+
+void entity_to_string(quark_t* quark, entity_t* entity, char* string);
 
 void entlist_init(quark_t* quark, entlist_t* entlist);
 void entlist_free(quark_t* quark, entlist_t* entlist);

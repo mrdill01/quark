@@ -92,7 +92,8 @@ static void tick_item_anim(quark_t* quark, player_t* player, item_t* item) {
         if (player->move_mode == MOVE_SPRINT)
             speed *= 2.0f;
         
-        anim[0] = 0.0f;
+        anim[0] = (player->move_mode == MOVE_SPRINT) ? 
+             sin(player->walk_timer * 2.5f * speed) * 0.025f : 0.0f;
         anim[1] = 0.0f;
         anim[2] = sin(player->walk_timer * 5.0f * speed) * 0.025f;
     } else {

@@ -3,6 +3,9 @@
 
 #include "../../include/gl.h"
 
+#define STB_INCLUDE_IMPLEMENTATION
+#include "../../include/stb_include.h"
+
 static int64_t compile_shader(quark_t* quark, const char* src, const char* name, int type) {
     info(quark, "compiling shader %s", name);
 
@@ -63,9 +66,14 @@ shader_t* shader_new(quark_t* quark,
 
 shader_t* shader_load(quark_t* quark, const char* name, const char* vpath, const char* fpath) {
     quark_set_progress(quark, "loading shader %s (%s + %s)", name, vpath, fpath);
-    const char* vs = load_file(quark, vpath);
-    const char* fs = load_file(quark, fpath);
-    return shader_new(quark, name, vs, vpath, fs, fpath);
+    char error[256];
+    char* vs = stb_include_file((char*)vpath, NULL, NULL, error);
+    char* fs = stb_include_file((char*)fpath, NULL, NULL, error);
+
+    shader_t* shader = shader_new(quark, name, vs, vpath, fs, fpath);
+    free(vs);
+    free(fs);
+    return shader;
 }
 
 void shader_free(quark_t* quark, shader_t* shader) {

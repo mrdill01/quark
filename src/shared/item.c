@@ -45,8 +45,9 @@ void weapon_fire(quark_t* quark, weapon_t* weapon, player_t* player) {
             &quark->audio, quark->audio.gun_click_sound, player->position, random(0.85f, 1.15f));
         return;
     }
-    
-    weapon->ammo_loaded--;
+
+    if (!sv_no_reload.value)
+        weapon->ammo_loaded--;
 
     ray_t ray;
     glm_vec3_copy(quark->renderer.camera.position, ray.origin);
@@ -89,11 +90,7 @@ void weapon_fire(quark_t* quark, weapon_t* weapon, player_t* player) {
         camera_t* camera = &quark->renderer.camera;
         glm_vec3_copy(camera->forward, ray.dir);
 
-        float spread = lerp(
-            weapon->min_spread,
-            weapon->max_spread,
-            1.0f - player_get_accuracy(quark, player));
-        
+        float spread = weapon->spread;
         ray.dir[0] += random(-spread, spread);
         ray.dir[1] += random(-spread, spread);
         ray.dir[2] += random(-spread, spread);
@@ -224,8 +221,7 @@ void inventory_init(quark_t* quark, inventory_t* inventory) {
     weapon->fire_sound = sound_load(quark, &quark->audio, "res/sounds/weapons/shooter_fire.wav");
     weapon->fire_rate = 0.1f;
     weapon->last_fire = 0.0f;
-    weapon->min_spread = 0.075f;
-    weapon->max_spread = 0.2f;
+    weapon->spread = 0.065f;
     weapon->recoil = 0.15f;
     weapon->damage = 25.0f;
     weapon->bullets = 1;
@@ -248,8 +244,7 @@ void inventory_init(quark_t* quark, inventory_t* inventory) {
     weapon->fire_sound = sound_load(quark, &quark->audio, "res/sounds/weapons/pistol_fire.wav");
     weapon->fire_rate = 0.25f;
     weapon->last_fire = 0.0f;
-    weapon->min_spread = 0.065f;
-    weapon->max_spread = 0.25f;
+    weapon->spread = 0.065f;
     weapon->recoil = 0.12f;
     weapon->damage = 65.0f;
     weapon->bullets = 1;
@@ -265,6 +260,33 @@ void inventory_init(quark_t* quark, inventory_t* inventory) {
     weapon->projectile_material = NULL;
     weapon->projectile_speed = 0.0f;
 
+    mesh_t* knife_mesh = mesh_load(quark, "res/meshes/items/knife.obj");
+    item_t* knife = item_new(quark, ITEM_WEAPON, "Knife",
+        knife_mesh, materials);
+    inventory_give_item(quark, inventory, knife);
+    weapon = &knife->data.weapon;
+    weapon->fire_sound = sound_load(quark, &quark->audio,
+        "res/sounds/weapons/rocket_launcher_fire.wav");
+    weapon->fire_rate = 0.65f;
+    weapon->last_fire = 0.0f;
+    weapon->spread = 0.01f;
+    weapon->recoil = 0.0f;
+    weapon->damage = 75.0f;
+    weapon->bullets = 1;
+    weapon->mag_size = 1;
+    weapon->ammo_loaded = weapon->mag_size;
+    weapon->ammo_unloaded = weapon->mag_size * 20;
+    weapon->reload_time = 2.4f;
+    weapon->is_reloading = false;
+    weapon->reload_start = 0.0f;
+    weapon->has_muzzle_flash = false;
+    weapon->is_projectile = false;
+    weapon->projectile_mesh = NULL;
+    weapon->projectile_material = NULL;
+    weapon->projectile_speed = 0.0f;
+    weapon->projectile_gravity = false;
+    weapon->projectile_particles = false;
+
     mesh_t* rocket_launcher_mesh = mesh_load(quark, "res/meshes/items/rocket_launcher.obj");
     item_t* rocket_launcher = item_new(quark, ITEM_WEAPON, "Rocket Launcher",
         rocket_launcher_mesh, materials);
@@ -274,8 +296,7 @@ void inventory_init(quark_t* quark, inventory_t* inventory) {
         "res/sounds/weapons/rocket_launcher_fire.wav");
     weapon->fire_rate = 0.65f;
     weapon->last_fire = 0.0f;
-    weapon->min_spread = 0.01f;
-    weapon->max_spread = 0.125f;
+    weapon->spread = 0.01f;
     weapon->recoil = 0.5f;
     weapon->damage = 140.0f;
     weapon->bullets = 1;
@@ -300,9 +321,8 @@ void inventory_init(quark_t* quark, inventory_t* inventory) {
     weapon->fire_sound = sound_load(quark, &quark->audio, "res/sounds/weapons/sniper_fire.wav");
     weapon->fire_rate = 1.7f;
     weapon->last_fire = 0.0f;
-    weapon->min_spread = 0.01f;
-    weapon->max_spread = 0.5f;
-    weapon->recoil = 1.0f;
+    weapon->spread = 0.01f;
+    weapon->recoil = 0.45f;
     weapon->damage = 110.0f;
     weapon->bullets = 1;
     weapon->mag_size = 6;
@@ -324,8 +344,7 @@ void inventory_init(quark_t* quark, inventory_t* inventory) {
     weapon->fire_sound = sound_load(quark, &quark->audio, "res/sounds/weapons/shotgun_fire.wav");
     weapon->fire_rate = 0.5f;
     weapon->last_fire = 0.0f;
-    weapon->min_spread = 0.065f;
-    weapon->max_spread = 0.5f;
+    weapon->spread = 0.065f;
     weapon->recoil = 1.0f;
     weapon->damage = 110.0f;
     weapon->bullets = 7;
@@ -349,8 +368,7 @@ void inventory_init(quark_t* quark, inventory_t* inventory) {
     weapon->fire_sound = NULL;
     weapon->fire_rate = 1.5f;
     weapon->last_fire = 0.0f;
-    weapon->min_spread = 0.0f;
-    weapon->max_spread = 0.0f;
+    weapon->spread = 0.0f;
     weapon->recoil = 0.0f;
     weapon->damage = 125.0f;
     weapon->bullets = 1;

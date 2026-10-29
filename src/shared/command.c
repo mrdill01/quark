@@ -3,18 +3,20 @@
 #include "../client/console.h"
 #include "net.h"
 
-cmd_t help = {"help", "[cmd/cvar]", "Shows a help message for the console.", false};
-cmd_t cmdlist = {"cmdlist", "", "Prints all commands to the console.", false};
-cmd_t cvarlist = {"cvarlist", "", "Prints all cvars to the console.", false};
-cmd_t reset = {"reset", "", "Resets a cvar to its default value.", false};
-cmd_t clear = {"clear", "", "Clears the console history.", false};
-cmd_t teleport = {"teleport", "<x> <y> <z>", "Teleports to a position.", true};
-cmd_t hurt = {"hurt", "<damage>", "Hurts the player.", true};
-cmd_t bot = {"bot", "<spawn|kickall>", "Adds or removes bots from the game", true};
-cmd_t host = {"host", "", "Hosts a new game.", false};
-cmd_t connect_ = {"connect", "<ip> <port>", "Connects the client to a server.", false};
-cmd_t disconnect = {"disconnect", "", "Disconnects from the server.", false};
-cmd_t quit = {"quit", "", "Quits the game.", false};
+cmd_t help = {"help", "[cmd/cvar]", "Shows a help message for the console.", false, false};
+cmd_t cmdlist = {"cmdlist", "", "Prints all commands to the console.", false, false};
+cmd_t cvarlist = {"cvarlist", "", "Prints all cvars to the console.", false, false};
+cmd_t reset = {"reset", "", "Resets a cvar to its default value.", true, false};
+cmd_t clear = {"clear", "", "Clears the console history.", false, false};
+cmd_t teleport = {"teleport", "<x> <y> <z>", "Teleports to a position.", true, false};
+cmd_t hurt = {"hurt", "<damage>", "Hurts the player.", false, true};
+cmd_t bot = {"bot", "<spawn|kickall>", "Adds or removes bots from the game", true, false};
+cmd_t host = {"host", "", "Hosts a new game.", false, false};
+cmd_t connect_ = {"connect", "<ip> <port>", "Connects the client to a server.", false, false};
+cmd_t disconnect = {"disconnect", "", "Disconnects from the server.", false, false};
+cmd_t quit = {"quit", "", "Quits the game.", false, false};
+cmd_t savemap = {"savemap", "<path>", "Save map to disk.", false, false};
+cmd_t map = {"map", "<path>", "Loads a map.", true, false};
 
 void cmd_init(quark_t* quark) {
     cmd_register(quark, &help);
@@ -29,6 +31,8 @@ void cmd_init(quark_t* quark) {
     cmd_register(quark, &connect_);
     cmd_register(quark, &disconnect);
     cmd_register(quark, &quit);
+    cmd_register(quark, &savemap);
+    cmd_register(quark, &map);
 }
 
 void cmd_register(quark_t* quark, cmd_t* cmd) {
@@ -188,11 +192,12 @@ void cmd_run(quark_t* quark, const char* name, const char** args, int argc) {
 
         cl_connect(quark, &quark->client, args[0], atoi(args[1]));
         
+        quark_set_progress(quark, "connecting...");
         quark->ui_state = UI_STATE_LOADING;
         ui_render(quark, &quark->renderer.ui, &quark->renderer);
         SDL_GL_SwapWindow(quark->window);
 
-        map_load(quark, &quark->map);
+        map_create_default(quark, &quark->map);
         return;
     }
 
@@ -214,6 +219,24 @@ void cmd_run(quark_t* quark, const char* name, const char** args, int argc) {
 
     if (strcmp(cmd->name, "quit") == 0) {
         quark->running = false;
+        return;
+    }
+
+    if (strcmp(cmd->name, "savemap") == 0) {
+        if (argc != 1) {
+            cmd_show_usage(quark, cmd->name);
+            return;
+        }
+
+        map_save(quark, &quark->map, args[0]);
+        return;
+    }
+
+    if (strcmp(cmd->name, "map") == 0) {
+        if (argc != 1) {
+            cmd_show_usage(quark, cmd->name);
+            return;
+        }
         return;
     }
 }

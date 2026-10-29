@@ -381,6 +381,7 @@ void r_add_partfx_step_water(
 void r_add_partfx_explosion(
     quark_t* quark, renderer_t* renderer, vec3 position, float radius);
 void r_add_partfx_pickup_coin(quark_t* quark, renderer_t* renderer, vec3 position);
+void r_add_partfx_player_trail(quark_t* quark, renderer_t* renderer, vec3 position, vec3 velocity);
 
 particle_t* r_add_particle(
     quark_t* quark,

@@ -45,7 +45,7 @@ void r_add_partfx_shoot_hit(quark_t* quark, renderer_t* renderer, trace_result_t
             bullet_hole_position, GLM_VEC3_ZERO, renderer->p_bullet_hole, GLM_VEC3_ONE,
             1.0f, random(0.065f, 0.085f), 30.0f, 0);
 
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < 8; i++) {
             vec3 smoke_position = {
                 trace.point[0] + random(-0.15f, 0.15f),
                 trace.point[1] + random(-0.15f, 0.15f),
@@ -55,7 +55,7 @@ void r_add_partfx_shoot_hit(quark_t* quark, renderer_t* renderer, trace_result_t
                 random(-0.25f, 0.25f),
                 random(-0.25f, 0.25f)};
             r_add_particle(quark, &quark->renderer, smoke_position, smoke_velocity,
-                renderer->p_smoke, GLM_VEC3_ONE, 0.5f, 0.4f, random(2.0f, 3.0f), PARTICLE_FADE_OUT);
+                renderer->p_smoke, GLM_VEC3_ONE, 0.5f, 0.2f, random(1.0f, 1.5f), PARTICLE_FADE_OUT);
         }
     }
 }
@@ -69,8 +69,8 @@ void r_add_partfx_shoot_hit_water(quark_t* quark, renderer_t* renderer, trace_re
         velocity[2] += random(-2.5f, 2.5f);
 
         particle_t* particle = r_add_particle(quark, &quark->renderer, trace.enter_water_point,
-                velocity, renderer->p_water, GLM_VEC3_ONE,
-                0.4f, random(0.11f, 0.14f), 3.0f, PARTICLE_FADE_OUT);
+            velocity, renderer->p_water, GLM_VEC3_ONE,
+            0.4f, random(0.11f, 0.14f), 3.0f, PARTICLE_FADE_OUT);
         particle->apply_gravity = true;
     }
 }
@@ -270,6 +270,28 @@ void r_add_partfx_pickup_coin(quark_t* quark, renderer_t* renderer, vec3 positio
             position, velocity, renderer->p_coin, GLM_VEC3_ONE,
             1.0f, random(0.05f, 0.1f), random(0.2f, 0.3f),
             PARTICLE_FADE_OUT);
+    }
+}
+
+void r_add_partfx_player_trail(quark_t* quark, renderer_t* renderer, vec3 position, vec3 velocity) {
+    float speed = glm_vec3_dot(velocity, velocity) / 50.0f;
+    int count = lerp(0, 32, speed);
+    for (int i = 0; i < count; i++) {
+        vec3 new_position = {position[0], position[1], position[2]};
+        vec3 velocity = {
+            random(-1.0f, 1.0f),
+            random(-1.0f, 1.0f),
+            random(-1.0f, 1.0f)};
+        vec3 color = {
+            random(0.0f, 1.0f),
+            random(0.0f, 1.0f),
+            random(0.0f, 1.0f)};
+        
+        particle_t* particle = r_add_particle(quark, &quark->renderer,
+            new_position, velocity, renderer->p_cross, color,
+            1.0f, random(0.08f, 0.1f), random(2.0f, 2.5f),
+            PARTICLE_FADE_OUT);
+        particle->apply_gravity = true;
     }
 }
 

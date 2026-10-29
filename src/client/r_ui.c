@@ -215,13 +215,13 @@ static void draw_loading_screen(quark_t* quark, ui_t* ui) {
         ui, ui->pixel,
         (vec2){
             r_width.value / 2.0f - ui_measure_text(text, font_size) / 2.0f,
-            r_height.value / 2.0f + 64.0f + 4.0f},
+            r_height.value / 2.0f + 128.0f + 4.0f},
         (vec2){ui_measure_text(text, font_size), 24.0f},
         (vec4){0.0f, 0.0f, 0.0f, 1.0f});
 
     glm_vec2_copy((vec2){
         r_width.value / 2.0f - ui_measure_text(text, font_size) / 2.0f,
-        r_height.value / 2.0f + 64.0f},
+        r_height.value / 2.0f + 128.0f},
         position);
     ui_draw_text_thick(quark, ui, text, position, font_size, 4, COLOR_WHITE);
 }
@@ -399,10 +399,16 @@ static void draw_hud(quark_t* quark, ui_t* ui, player_t* player) {
         weapon_t* weapon = &item->data.weapon;
         if (weapon && quark->player->vehicle == -1) {
             char text[32];
-            if (sv_inf_ammo.value)
-                sprintf(text, "ammo %d/INF", weapon->ammo_loaded);
+            if (sv_no_reload.value && sv_inf_ammo.value)
+                sprintf(text, "INF/INF");
+            else if (sv_no_reload.value)
+                sprintf(text, "INF/%d", weapon->ammo_unloaded);
+            else if (sv_no_reload.value && !sv_inf_ammo.value)
+                sprintf(text, "INF/%d", weapon->ammo_unloaded);
+            else if (sv_inf_ammo.value)
+                sprintf(text, "%d/INF", weapon->ammo_loaded);
             else
-                sprintf(text, "ammo %d/%d", weapon->ammo_loaded, weapon->ammo_unloaded);
+                sprintf(text, "%d/%d", weapon->ammo_loaded, weapon->ammo_unloaded);
             float font_size = 64.0f;
             ui_draw_text_thick(quark, ui, text,
                 (vec2){64.0f + 10.0f, r_height.value - font_size},
@@ -421,7 +427,7 @@ static void draw_hud(quark_t* quark, ui_t* ui, player_t* player) {
     
     if (quark->player->vehicle == -1 && !edit_mode.value) {
         char text[32];
-        sprintf(text, "health %d", (int)ceilf(quark->player->health));
+        sprintf(text, "%d+", (int)ceilf(quark->player->health));
         float font_size = 64.0f;
         float width = ui_measure_text(text, font_size);
         ui_draw_text_thick(quark, ui, text,
@@ -553,6 +559,21 @@ static void draw_death_screen(quark_t* quark, ui_t* ui) {
         buffer,
         (vec2){r_width.value / 2.0f - text_width / 2.0f, r_height.value / 2.0f + font_size / 2.0f},
         font_size, 8, COLOR_WHITE);
+}
+
+static void draw_scoreboard(quark_t* quark, ui_t* ui) {
+    float font_size = 30.0f;
+    float spacing = font_size * 0.65f;
+
+    int width = 600.0f;
+    int height = 600.0f;
+
+    ui_draw_texture(quark,
+        ui,
+        ui->pixel,
+        (vec2){r_width.value / 2.0f - width / 2.0f, 0.0f},
+        (vec2){width, height},
+        (vec4){0.0f, 0.0f, 0.0f, 0.8f});
 }
 
 static void draw_console(quark_t* quark, ui_t* ui, console_t* con) {
@@ -688,6 +709,9 @@ void ui_render(quark_t* quark, ui_t* ui, renderer_t* renderer) {
     }
     default: unreachable(quark);
     }
+
+    if (scoreboard.value)
+        draw_scoreboard(quark, ui);
 
     if (console.value)
         draw_console(quark, ui, &quark->console);

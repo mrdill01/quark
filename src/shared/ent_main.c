@@ -23,24 +23,9 @@ void entity_init_common(
 	entity->local_bbox = (bbox_t){0};
 	entity->world_bbox = (bbox_t){0};
 
+	entity->body = phys_create_rigid_body(quark, &quark->physics, position);
+
 	entity->spawn_time = quark->time;
-
-	*out = entity;
-}
-
-void entity_init_sun_light(quark_t* quark,
-    const char* name,
-    float x, float y, float z,
-    vec3 dir, vec3 color, entity_t** out)
-{
-	if (!out) return;
-
-	entity_t* entity = NULL;
-	entity_init_common(quark, name, ENTITY_SUN_LIGHT, (vec3){x, y, z}, &entity);
-	glm_vec3_copy(dir, entity->data.sun_light.direction);
-	glm_normalize(entity->data.sun_light.direction);
-	glm_vec3_copy(color, entity->data.sun_light.color);
-	glm_mat4_identity(entity->data.sun_light.matrix);
 
 	*out = entity;
 }
@@ -49,6 +34,8 @@ void entity_free(quark_t* quark, entity_t* entity) {
 	if (!entity) return;
 	if (entity->name)
 		free(entity->name);
+	if (entity->body)
+		phys_free_rigid_body(quark, &quark->physics, entity->body);
     free(entity);
 }
 
@@ -157,6 +144,24 @@ bool entity_get_drawcall(quark_t* quark, entity_t* entity, drawcall_t* drawcall)
 	}
 
 	return true;
+}
+
+void entity_to_string(quark_t* quark, entity_t* entity, char* string) {
+	if (!string) return;
+
+	char buffer[2048];
+	sprintf(buffer, "%d %s %d ", strlen(entity->name), entity->name, entity->id);
+	sprintf(buffer, "%g %g %g ", entity->position[0], entity->position[1], entity->position[2]);
+	sprintf(buffer, "%g %g %g ",
+		entity->rotation[0], entity->rotation[1], entity->rotation[2], entity->rotation[3]);
+	sprintf(buffer, "%g %g %g ", entity->scale[0], entity->scale[1], entity->scale[2]);
+	sprintf(buffer, "%g %g %g ", entity->velocity[0], entity->velocity[1], entity->velocity[2]);
+
+	switch (entity->type) {
+	
+	}
+
+	strcat(string, buffer);
 }
 
 void entlist_init(quark_t* quark, entlist_t* entlist) {

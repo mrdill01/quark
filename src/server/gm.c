@@ -2,7 +2,7 @@
 #include "../shared/quark.h"
 #include "../shared/player.h"
 
-static const char* game_mode_names[] = {"Capture the Flag"};
+static const char* game_mode_names[] = {"Capture the Throne"};
 static const char* game_state_names[] = {"Waiting for players...", "Warmup", "Playing"};
 
 void gm_start(quark_t* quark, game_mode_t* gm, game_mode_type_t gm_type) {

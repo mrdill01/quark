@@ -17,6 +17,7 @@
 #define AIR_STOPSPEED 2.0f
 #define FRICTION 5.0f
 #define FRICTION_WATER 2.0f
+#define FRICTION_ICE 1.5f
 #define FRICTION_FLIGHT 3.0f
 #define AIR_CONTROL 0.0f
 #define INTERP_HEIGHT_SPEED 5.5f
@@ -112,7 +113,7 @@ static float get_max_speed(quark_t* quark, player_t* player) {
 }
 
 static float get_height(quark_t* quark, player_t* player) {
-    if (player_is_dead(player))
+    if (player_is_dead(player) || player->water_level >= 0.65)
         return 0.3f;
     
     switch (player->move_mode) {
@@ -190,7 +191,8 @@ static void move_water(quark_t* quark, player_t* player) {
 
 static void move_ground(quark_t* quark, player_t* player) {
     player->velocity[1] = 0.0f;
-    apply_friction(quark, player, FRICTION);
+    apply_friction(quark, player, (player->ground_mat == PHYS_MAT_ICE)
+        ? FRICTION_ICE : FRICTION);
     accelerate(quark, player, player->target_speed, ACCEL);
 
     if ((player->buttons & PLAYER_BUTTON_JUMP) && !player->head_blocked) {
@@ -260,7 +262,7 @@ static void hit_ground(quark_t* quark, player_t* player, trace_result_t trace) {
     player->fall_distance = 0.0f;
     player->is_jumping = false;
     player->height -= 0.5f;
-    player->item_anim[1] = -0.04f;
+    player->item_anim[1] = -0.1f;
 
     if (player->velocity[1] < -8.0f && player->water_level == 0.0f) {
         float fall_damage = powf(-player->velocity[1], 1.25f);
@@ -313,8 +315,8 @@ static void trace_ground(quark_t* quark, player_t* player, entlist_t* entlist, b
         player->position[1] = trace.point[1] + get_height(quark, player) / 2.0f;
         player->ground_mat = trace.phys_mat;
         player->water_level = trace.water_level;
-
         player->is_grounded = true;
+
         if (!was_grounded)
             hit_ground(quark, player, trace);
 
@@ -323,10 +325,11 @@ static void trace_ground(quark_t* quark, player_t* player, entlist_t* entlist, b
         
     } else {
         player->is_grounded = false;
+        player->water_level = 0.0f;
+
         if (was_grounded)
             leave_ground(quark, player);
 
-        player->water_level = 0.0f;
         if (was_in_water)
             exit_water(quark, player);
     }
@@ -412,8 +415,11 @@ static void tick_camera(quark_t* quark, player_t* player, camera_t* camera) {
     if (!player->is_me) return;
 
     camera_tick(quark, camera);
-
-    if (player->buttons & PLAYER_BUTTON_AIM)
+    
+    float speed = glm_vec3_dot(player->velocity, player->velocity);
+    if (player->buttons & PLAYER_BUTTON_SPRINT && speed > 0.0f)
+        camera->fov = interp_to(camera->fov, r_fov.value * 1.08f, 4.0f, quark->dt);
+    else if (player->buttons & PLAYER_BUTTON_AIM)
         camera->fov = interp_to(camera->fov, r_fov.value * 0.75f, 12.0f, quark->dt);
     else
         camera->fov = interp_to(camera->fov, r_fov.value, 12.0f, quark->dt);
@@ -504,9 +510,9 @@ static void trace_look_ray(quark_t* quark, player_t* player, camera_t* camera, e
     {
         player->editor.trace = player->look_trace;
 
-        if (player->look_trace.entity->type == ENTITY_MESH ||
-            player->look_trace.entity->type == ENTITY_VEHICLE)
-            player->look_entity = player->look_trace.entity->id;
+        if (entlist->ents[player->look_trace.entity_id]->type == ENTITY_MESH ||
+            entlist->ents[player->look_trace.entity_id]->type == ENTITY_VEHICLE)
+            player->look_entity = player->look_trace.entity_id;
 
         if (player->buttons & PLAYER_BUTTON_FIRE) {
             if (edit_mode.value) {
@@ -514,7 +520,7 @@ static void trace_look_ray(quark_t* quark, player_t* player, camera_t* camera, e
                  if (player->editor.selection) {
                     edit_deselect(quark, &player->editor);
                 } else {
-                    edit_select(quark, &player->editor, player->look_trace.entity);
+                    edit_select(quark, &player->editor, entlist->ents[player->look_trace.entity_id]);
                 }
                 return;
             }
@@ -533,9 +539,9 @@ static void trace_look_ray(quark_t* quark, player_t* player, camera_t* camera, e
         } else if (player->look_entity != -1) {
             player->buttons &= ~PLAYER_BUTTON_INTERACT;
 
-            switch (player->look_trace.entity->type) {
+            switch (entlist->ents[player->look_trace.entity_id]->type) {
             case ENTITY_MESH: {
-                if (player->look_trace.entity->data.mesh.enable_physics)
+                if (entlist->ents[player->look_trace.entity_id]->data.mesh.enable_physics)
                     player->grabbed_mesh = player->look_entity;
                 break;
             }
@@ -616,7 +622,8 @@ void player_tick(quark_t* quark, player_t* player, camera_t* camera, entlist_t* 
     else if (player->buttons & PLAYER_BUTTON_SPRINT) set_move_mode(player, MOVE_SPRINT);
     else set_move_mode(player, MOVE_WALK);
 
-    update_bbox(quark, player);
+    if (player->is_bot)
+        bot_tick(quark, player);
 
     if (!player->is_bot) {
         vec3 forward;
@@ -650,13 +657,16 @@ void player_tick(quark_t* quark, player_t* player, camera_t* camera, entlist_t* 
 
     move_and_collide(quark, player, entlist);
 
-    if (player->vehicle != -1) {
+    if (!noclip.value && player->move_mode == MOVE_FLIGHT)
+        set_move_mode(player, MOVE_WALK);
+
+    if (noclip.value) {
+        set_move_mode(player, MOVE_FLIGHT);
+        move_flight(quark, player);
+    } else if (player->vehicle != -1) {
         entity_t* vehicle = quark->map.entlist.ents[player->vehicle];
         glm_vec3_copy(vehicle->position, player->position);
 
-    } else if (noclip.value) {
-        set_move_mode(player, MOVE_FLIGHT);
-        move_flight(quark, player);
     } else if (player->water_level > 0.0f)
         move_water(quark, player);
     else if (player->is_grounded)
@@ -672,15 +682,25 @@ void player_tick(quark_t* quark, player_t* player, camera_t* camera, entlist_t* 
     tick_grabbed_mesh(quark, player);
     edit_tick(quark, &player->editor, player);
 
-    if (player->is_bot)
-        bot_tick(quark, player);
+    if (player_get_xz_speed(quark, player) > 0.0f) {
+        vec3 position;
+        player_get_top_position(quark, player, position);
+        position[1] -= 0.3f;
 
+        vec3 dir;
+        glm_vec3_scale(quark->renderer.camera.forward, -0.5f, dir);
+
+        glm_vec3_add(position, dir, position);
+        r_add_partfx_player_trail(quark, &quark->renderer, position, player->velocity);
+    }
+
+    update_bbox(quark, player);
     prof_end(quark, &quark->prof);
 }
 
 static void render_look_entity_outline(quark_t* quark, player_t* player, renderer_t* renderer) {
     if (player->look_entity != -1 && player->vehicle == -1 && player->grabbed_mesh == -1) {
-        if (player->look_trace.entity->type == ENTITY_MESH &&
+        if (quark->map.entlist.ents[player->look_trace.entity_id]->type == ENTITY_MESH &&
             !quark->map.entlist.ents[player->look_entity]->data.mesh.enable_physics)
             return;
 
@@ -767,15 +787,6 @@ float player_get_step_rate(quark_t* quark, player_t* player) {
     }
     
     return speed;
-}
-
-float player_get_accuracy(quark_t* quark, player_t* player) {
-    float accuracy = clamp(1.0f - (player_get_speed(quark, player) / 50.0f), 0.0f, 1.0f);
-    if (player->buttons & PLAYER_BUTTON_AIM)
-        accuracy = max(accuracy, 0.85f);
-    if (!player->is_grounded)
-        accuracy = 0.0f;
-    return accuracy;
 }
 
 float player_get_xz_speed(quark_t* quark, player_t* player) {

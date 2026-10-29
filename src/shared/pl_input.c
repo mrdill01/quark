@@ -39,8 +39,13 @@ void player_input(quark_t* quark, player_t* player) {
     if (quark->ui_state != UI_STATE_IN_GAME)
         return;
 
-    if (quark->keys[SDL_SCANCODE_F]) {
-        quark->keys[SDL_SCANCODE_F] = false;
+    if (quark->keys[SDL_SCANCODE_TAB] && !scoreboard.value)
+        cvar_set(quark, "scoreboard", "1");
+    else if (scoreboard.value)
+        cvar_set(quark, "scoreboard", "0");
+
+    if (quark->keys[SDL_SCANCODE_E]) {
+        quark->keys[SDL_SCANCODE_E] = false;
         player->buttons |= PLAYER_BUTTON_INTERACT;
     }
 
@@ -60,8 +65,8 @@ void player_input(quark_t* quark, player_t* player) {
     
     camera_controls(quark, player, camera);
 
-    if (quark->keys[SDL_SCANCODE_V]) {
-        quark->keys[SDL_SCANCODE_V] = false;
+    if (quark->keys[SDL_SCANCODE_B]) {
+        quark->keys[SDL_SCANCODE_B] = false;
         cmd_run(quark, "hurt", (const char*[]){"10.0f"}, 1);
     }
 
@@ -89,7 +94,7 @@ void player_input(quark_t* quark, player_t* player) {
             player->move_input[1] += 1.0f;
     }
     
-    if (quark->keys[SDL_SCANCODE_LCTRL]) {
+    if (quark->keys[SDL_SCANCODE_C]) {
         player->buttons |= PLAYER_BUTTON_CROUCH;
         if (player->move_mode == MOVE_FLIGHT)
             player->move_input[1] -= 1.0f;
@@ -99,7 +104,7 @@ void player_input(quark_t* quark, player_t* player) {
         player->buttons |= PLAYER_BUTTON_SPRINT;
     }
 
-    if (quark->keys[SDL_SCANCODE_E] || quark->keys[SDL_SCANCODE_RCTRL])
+    if (quark->keys[SDL_SCANCODE_LCTRL])
         player->buttons |= PLAYER_BUTTON_FIRE;
 
     if (quark->keys[SDL_SCANCODE_R]) {
@@ -116,8 +121,8 @@ void player_input(quark_t* quark, player_t* player) {
         cvar_toggle(quark, "edit_mode");
     }
 
-    if (quark->keys[SDL_SCANCODE_C]) {
-        quark->keys[SDL_SCANCODE_C] = false;
+    if (quark->keys[SDL_SCANCODE_V]) {
+        quark->keys[SDL_SCANCODE_V] = false;
         player->is_thirdperson = !player->is_thirdperson;
     }
 

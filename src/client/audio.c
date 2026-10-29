@@ -91,6 +91,8 @@ void a_init(quark_t* quark, audio_t* audio) {
     audio->step_sounds[PHYS_MAT_SAND] = sound_load(quark, audio, "res/sounds/step_sand.wav");
     audio->step_sounds[PHYS_MAT_GRASS] = sound_load(quark, audio, "res/sounds/step_grass.wav");
     audio->step_sounds[PHYS_MAT_WATER] = sound_load(quark, audio, "res/sounds/step_water.wav");
+    audio->step_sounds[PHYS_MAT_ICE] = sound_load(quark, audio, "res/sounds/step_ice.wav");
+    audio->step_sounds[PHYS_MAT_PLAYER] = sound_load(quark, audio, "res/sounds/step_water.wav");
 
     audio->bullet_hit_sounds[PHYS_MAT_METAL] =
         sound_load(quark, audio, "res/sounds/bullet_hit_metal.wav");
@@ -104,6 +106,8 @@ void a_init(quark_t* quark, audio_t* audio) {
         sound_load(quark, audio, "res/sounds/bullet_hit_grass.wav");
     audio->bullet_hit_sounds[PHYS_MAT_WATER] =
         sound_load(quark, audio, "res/sounds/bullet_hit_stone.wav");
+    audio->bullet_hit_sounds[PHYS_MAT_ICE] =
+        sound_load(quark, audio, "res/sounds/bullet_hit_ice.wav");
     audio->bullet_hit_sounds[PHYS_MAT_PLAYER] =
         sound_load(quark, audio, "res/sounds/bullet_hit_player.wav");
 

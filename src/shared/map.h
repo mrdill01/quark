@@ -14,8 +14,10 @@ typedef struct {
 } map_t;
 
 void map_init(quark_t* quark, map_t* map);
-void map_load(quark_t* quark, map_t* map);
 void map_free(quark_t* quark, map_t* map);
 void map_tick(quark_t* quark, map_t* map);
+void map_create_default(quark_t* quark, map_t* map);
+void map_load(quark_t* quark, map_t* map, const char* path);
+void map_save(quark_t* quark, map_t* map, const char* path);
 
 #endif

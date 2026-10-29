@@ -66,9 +66,7 @@ typedef struct {
 } body_t;
 
 typedef struct {
-    float last_speech;
-    float last_speech_word;
-    int num_speech_words;
+    int tmp;
 } bot_t;
 
 typedef struct player_t {
@@ -126,7 +124,6 @@ void player_get_top_position(quark_t* quark, player_t* player, vec3 position);
 void player_get_bottom_position(quark_t* quark, player_t* player, vec3 position);
 float player_get_speed(quark_t* quark, player_t* player);
 float player_get_step_rate(quark_t* quark, player_t* player);
-float player_get_accuracy(quark_t* quark, player_t* player);
 float player_get_xz_speed(quark_t* quark, player_t* player);
 
 void player_tick_item(quark_t* quark, player_t* player);

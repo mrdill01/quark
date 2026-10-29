@@ -1,5 +1,5 @@
-#ifndef SBOX_H
-#define SBOX_H
+#ifndef QUARK_H
+#define QUARK_H
 
 #include "config.h"
 #include "../client/console.h"
@@ -12,6 +12,7 @@
 #include "entity.h"
 #include "player.h"
 #include "map.h"
+#include "physics.h"
 #include "../server/gm.h"
 
 #include <stdlib.h>
@@ -48,6 +49,7 @@ typedef struct quark_t {
     console_t console;
     cvar_t* cvars;
     cmd_t* cmds;
+    char progress_title[256];
     char progress_text[256];
     
     bool running;
@@ -74,6 +76,7 @@ typedef struct quark_t {
     texture_t* textures;
     material_t* materials;
 
+    physics_t physics;
     server_t server;
     client_t client;
 
@@ -93,6 +96,7 @@ extern cvar_t sv_timescale;
 extern cvar_t sv_respawn_time;
 extern cvar_t sv_destruction;
 extern cvar_t sv_inf_ammo;
+extern cvar_t sv_no_reload;
 extern cvar_t sv_random_seed;
 extern cvar_t cl_name;
 extern cvar_t r_width;
@@ -117,6 +121,7 @@ extern cvar_t r_debug_buffer;
 extern cvar_t a_device;
 extern cvar_t a_volume;
 extern cvar_t m_sens;
+extern cvar_t scoreboard;
 extern cvar_t console;
 extern cvar_t profiler;
 extern cvar_t noclip;

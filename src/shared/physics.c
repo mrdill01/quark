@@ -1,6 +1,33 @@
 #include "physics.h"
 #include "quark.h"
 
+void phys_init(quark_t* quark, physics_t* physics) {
+    b3WorldDef world_def = b3DefaultWorldDef();
+    physics->world_id = b3CreateWorld(&world_def);
+}
+
+void phys_free(quark_t* quark, physics_t* physics) {
+    b3DestroyWorld(physics->world_id);
+}
+
+rigid_body_t* phys_create_rigid_body(quark_t* quark, physics_t* physics, vec3 position) {
+    rigid_body_t* body = malloc(sizeof(rigid_body_t));
+    b3BodyDef def = b3DefaultBodyDef();
+    def.position.x = position[0];
+    def.position.y = position[1];
+    def.position.z = position[2];
+
+    body->id = b3CreateBody(physics->world_id, &def);
+    b3ShapeDef shape_def = b3DefaultShapeDef();
+    b3BoxHull box = b3MakeBoxHull(0.6f, 0.6f, 0.6f);
+    b3CreateHullShape(body->id, &shape_def, &box.base);
+    return body;
+}
+
+void phys_free_rigid_body(quark_t* quark, physics_t* physics, rigid_body_t* body) {
+    free(body);
+}
+
 static void compute_trace_normal(trace_result_t* trace, const bbox_t* bbox) {
     vec3 center;
     bbox_get_center(bbox, center);
@@ -46,7 +73,7 @@ bool phys_line_trace(
     glm_vec3_zero(trace.enter_water_point);
     trace.starts_in_water = false;
     trace.water_level = 0.0f;
-    trace.entity = NULL;
+    trace.entity_id = -1;
     trace.player_id = -1;
     trace.material = NULL;
     trace.phys_mat = PHYS_MAT_NONE;
@@ -69,12 +96,11 @@ bool phys_line_trace(
         if (raycast_bbox(ray, &entity->world_bbox, &trace.distance, max_distance)) {
             point_on_ray(ray, trace.distance, trace.point);
 
-            if (entity->type == ENTITY_TERRAIN) {
+            /*if (entity->type == ENTITY_TERRAIN) {
                 float u = (trace.point[0] - entity->world_bbox.min[0]) /
                     (entity->world_bbox.max[0] - entity->world_bbox.min[0]);
                 float v = (trace.point[2] - entity->world_bbox.min[2]) /
                     (entity->world_bbox.max[2] - entity->world_bbox.min[2]);
-                printf("%g %g\n", u, v);
                 //u /= entity->scale[0];
                 //v /= entity->scale[2];
                 
@@ -82,7 +108,7 @@ bool phys_line_trace(
 
                 //trace.distance = height;
                 trace.point[1] = height * entity->scale[1];
-            }
+            }*/
 
             float distance_to_start = glm_vec3_distance(trace.point, ray.origin);
 
@@ -97,7 +123,7 @@ bool phys_line_trace(
 
             compute_trace_normal(&trace, &entity->world_bbox);
             if (distance_to_start == 0.0f) trace.starts_solid = true;
-            trace.entity = entity;
+            trace.entity_id = entity->id;
             trace.material = entity->data.mesh.materials[0];
             trace.phys_mat = entity->data.mesh.materials[0]->phys_mat;
 

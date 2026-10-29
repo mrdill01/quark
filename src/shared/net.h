@@ -19,7 +19,7 @@ typedef enum {
     SVC_NOTHING = 1,
     SVC_DISCONNECT,     /* [string reason] */
     SVC_SPAWN_ID,       /* [u8 id] */
-    SVC_ENTITY,
+    SVC_ENITY,          /* [u8 id, entity data] */
 } server_to_client;
 
 void net_init(quark_t* quark);

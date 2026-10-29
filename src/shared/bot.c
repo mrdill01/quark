@@ -2,8 +2,6 @@
 #include "quark.h"
 
 void bot_init(quark_t* quark, player_t* bot) {
-    bot->bot.last_speech = quark->time;
-    bot->bot.last_speech_word = quark->time;
 }
 
 static void move_to_target(quark_t* quark, player_t* bot, vec3 target, float stop_distance) {

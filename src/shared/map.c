@@ -7,10 +7,41 @@ void map_init(quark_t* quark, map_t* map) {
     map->coins = 0;
 }
 
-void map_load(quark_t* quark, map_t* map) {
+void map_free(quark_t* quark, map_t* map) {
+    if (!map->is_loaded) return;
+    entlist_free(quark, &map->entlist);
+    map_init(quark, map);
+}
+
+static void send_to_renderer(quark_t* quark, map_t* map) {
+    for (size_t i = 0; i < quark->map.entlist.len; i++) {
+        entity_t* entity = quark->map.entlist.ents[i];
+        if (!entity) continue;
+
+        drawcall_t drawcall = {0};
+        if (entity_get_drawcall(quark, entity, &drawcall))
+            r_add_drawcall(&quark->renderer, drawcall);
+    }
+}
+
+void map_tick(quark_t* quark, map_t* map) {
+	if (!quark->map.is_loaded) return;
+
+	entlist_tick(quark, &map->entlist);
+    send_to_renderer(quark, map);
+
+    for (int i = 0; i < NET_MAX_PLAYERS; i++) {
+        player_t* player = quark->players[i];
+        if (!player) continue;
+        if (player->position[1] < -100.0f)
+            player_hurt(quark, player, player->health);
+    }
+}
+
+void map_create_default(quark_t* quark, map_t* map) {
     if (map->is_loaded)
 	    map_free(quark, &quark->map);
-    info(quark, "loading map...");
+    info(quark, "creating default map...");
     srand(sv_random_seed.value);
     
 	entlist_init(quark, &map->entlist);
@@ -53,6 +84,7 @@ void map_load(quark_t* quark, map_t* map) {
     mesh_t* grass_mesh = mesh_load(quark, "res/meshes/nature/grass.obj");
     mesh_t* pipe_mesh = mesh_load(quark, "res/meshes/pipe.obj");
     mesh_t* pipe_bend_mesh = mesh_load(quark, "res/meshes/pipe_bend.obj");
+    mesh_t* wall_light = mesh_load(quark, "res/meshes/wall_light.obj");
     mesh_t* coin_mesh = mesh_load(quark, "res/meshes/items/coin.obj");
     
     material_t* crate = material_load(quark,
@@ -300,7 +332,14 @@ void map_load(quark_t* quark, map_t* map) {
         "res/textures/materials/glass.png",
         "res/textures/materials/glass_r.png",
         "res/textures/materials/glass_n.png",
-        1, 1, false, PHYS_MAT_METAL);
+        1, 1, false, PHYS_MAT_ICE);
+
+    material_t* ice = material_load(quark,
+        "ice",
+        "res/textures/materials/ice.png",
+        "res/textures/materials/ice_r.png",
+        "res/textures/materials/ice_n.png",
+        1, 1, false, PHYS_MAT_ICE);
 
     material_t* light = material_load(quark,
         "light",
@@ -443,7 +482,7 @@ void map_load(quark_t* quark, map_t* map) {
     entity_mesh_set_material(quark, entity, sand, 0);
     entlist_add(quark, &map->entlist, entity);
 
-     entity_init_mesh(quark, "floor(8)", 40.0f, -0.5f, 16.0f, floor_mesh, &entity);
+    entity_init_mesh(quark, "floor(8)", 40.0f, -0.5f, 16.0f, floor_mesh, &entity);
     entity_mesh_set_material(quark, entity, sand, 0);
     entlist_add(quark, &map->entlist, entity);
 
@@ -524,6 +563,47 @@ void map_load(quark_t* quark, map_t* map) {
     entity_init_mesh(quark, "floor(24)", -8.0f, 2.0f, -8.0f, floor_mesh, &entity);
     entity_mesh_set_material(quark, entity, concrete2, 0);
     entlist_add(quark, &map->entlist, entity);
+
+    entity_init_mesh(quark, "floor(25)", 40.0f, -0.5f, 32.0f, floor_mesh, &entity);
+    entity_mesh_set_material(quark, entity, ice, 0);
+    entlist_add(quark, &map->entlist, entity);
+
+    entity_init_mesh(quark, "floor(26)", 40.0f, -0.5f, 32.0f, floor_mesh, &entity);
+    entity_mesh_set_material(quark, entity, ice, 0);
+    entlist_add(quark, &map->entlist, entity); 
+
+    entity_init_mesh(quark, "floor(27)", 32.0f, -0.5f, 32.0f, floor_mesh, &entity);
+    entity_mesh_set_material(quark, entity, ice, 0);
+    entlist_add(quark, &map->entlist, entity);
+
+    entity_init_mesh(quark, "floor(28)", 40.0f, -0.5f, 40.0f, floor_mesh, &entity);
+    entity_mesh_set_material(quark, entity, ice, 0);
+    entlist_add(quark, &map->entlist, entity);
+
+    entity_init_mesh(quark, "floor(29)", 32.0f, -0.5f, 40.0f, floor_mesh, &entity);
+    entity_mesh_set_material(quark, entity, ice, 0);
+    entlist_add(quark, &map->entlist, entity);
+
+    for (int i = 0; i < 10; i++) {
+        vec3 position = {
+            random(28.0f, 44.0f),
+            1.0f,
+            random(44.0f, 28.0f)};
+
+        entity_init_mesh(quark, "rock", 3.5f, -0.5f, -6.5f, rock_mesh, &entity);
+        entity_mesh_set_material(quark, entity, rock, 0);
+        entlist_add(quark, &map->entlist, entity);
+    }
+
+    for (int i = 0; i < 10; i++) {
+        vec3 position = {
+            random(28.0f, 44.0f), -0.5f, random(28.0f, 44.0f)};
+        entity_init_mesh(quark, "rock", position[0], position[1], position[2], rock_mesh, &entity);
+        entity_mesh_set_material(quark, entity, ice, 0);
+        glm_quat(entity->rotation, rad(random(-180.0f, 180.0f)), 0.0f, 1.0f, 0.0f);
+        glm_vec3_scale(entity->scale, random(0.5f, 1.5f), entity->scale);
+        entlist_add(quark, &map->entlist, entity);
+    }
 
     entity_init_mesh(quark, "wall", 0.0f, -0.5f, 4.0f, wall_mesh, &entity);
     entity_mesh_set_material(quark, entity, brick, 0);
@@ -984,6 +1064,11 @@ void map_load(quark_t* quark, map_t* map) {
     entity_mesh_set_material(quark, entity, light, 1);
     entlist_add(quark, &map->entlist, entity);
 
+    entity_init_mesh(quark, "wall light", 17.5f, 1.2f, -9.4f, wall_light, &entity);
+    entity_mesh_set_material(quark, entity, metal, 0);
+    entity_mesh_set_material(quark, entity, light, 1);
+    entlist_add(quark, &map->entlist, entity);
+
     vec3 color;
     glm_vec3_copy((vec3){64.0f, 32.0f, 32.0f}, color);
     entity_init_point_light(quark, "point light(2)",
@@ -1111,7 +1196,7 @@ void map_load(quark_t* quark, map_t* map) {
             for (int k = -3; k <= 3; k++) {
                 entity_init_pickup(quark, "coin",
                     (vec3){x + j, start[1] + 0.1f, z + k},
-                    coin_mesh, PICKUP_TYPE_COIN, quark->audio.pickup_coin_sound, &entity);
+                    coin_mesh, PICKUP_COIN, quark->audio.pickup_coin_sound, &entity);
                 entity_pickup_set_material(quark, entity, coin, 0);
                 entlist_add(quark, &map->entlist, entity);
                 map->coins++;
@@ -1136,33 +1221,40 @@ void map_load(quark_t* quark, map_t* map) {
     quark->ui_state = UI_STATE_IN_GAME;
 }
 
-void map_free(quark_t* quark, map_t* map) {
-    if (!map->is_loaded) return;
-    entlist_free(quark, &map->entlist);
-    map_init(quark, map);
+void map_load(quark_t* quark, map_t* map, const char* path) {
+    if (map->is_loaded)
+	    map_free(quark, &quark->map);
+    info(quark, "loading map...");
+    srand(sv_random_seed.value);
+    
+	entlist_init(quark, &map->entlist);
+
+    char* text = load_file(quark, path);
+    
+    info(quark, "map loaded!");
+    map->is_loaded = true;
+    quark->ui_state = UI_STATE_IN_GAME;
 }
 
-static void send_to_renderer(quark_t* quark, map_t* map) {
-    for (size_t i = 0; i < quark->map.entlist.len; i++) {
-        entity_t* entity = quark->map.entlist.ents[i];
+void map_save(quark_t* quark, map_t* map, const char* path) {
+    clear_file(quark, path);
+    FILE* fp = fopen(path, "a");
+
+    char buffer[2048];
+    buffer[0] = '\0';
+    sprintf(buffer, "%d ", map->entlist.len);
+    fwrite(buffer, 1, strlen(buffer), fp);
+
+    for (size_t i = 0; i < map->entlist.len; i++) {
+        entity_t* entity = map->entlist.ents[i];
         if (!entity) continue;
 
-        drawcall_t drawcall = {0};
-        if (entity_get_drawcall(quark, entity, &drawcall))
-            r_add_drawcall(&quark->renderer, drawcall);
+        char buffer[2048];
+        buffer[0] = '\0';
+        entity_to_string(quark, entity, buffer);
+
+        fwrite(buffer, 1, strlen(buffer), fp);
     }
-}
 
-void map_tick(quark_t* quark, map_t* map) {
-	if (!quark->map.is_loaded) return;
-
-	entlist_tick(quark, &map->entlist);
-    send_to_renderer(quark, map);
-
-    for (int i = 0; i < NET_MAX_PLAYERS; i++) {
-        player_t* player = quark->players[i];
-        if (!player) continue;
-        if (player->position[1] < -100.0f)
-            player_hurt(quark, player, player->health);
-    }
+    fclose(fp);
 }
