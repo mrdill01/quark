@@ -211,17 +211,9 @@ static void draw_loading_screen(quark_t* quark, ui_t* ui) {
 
     font_size = 32.0f;
     text = quark->progress_text;
-    ui_draw_texture(quark,
-        ui, ui->pixel,
-        (vec2){
-            r_width.value / 2.0f - ui_measure_text(text, font_size) / 2.0f,
-            r_height.value / 2.0f + 128.0f + 4.0f},
-        (vec2){ui_measure_text(text, font_size), 24.0f},
-        (vec4){0.0f, 0.0f, 0.0f, 1.0f});
-
     glm_vec2_copy((vec2){
         r_width.value / 2.0f - ui_measure_text(text, font_size) / 2.0f,
-        r_height.value / 2.0f + 128.0f},
+        r_height.value / 2.0f + 80.0f},
         position);
     ui_draw_text_thick(quark, ui, text, position, font_size, 4, COLOR_WHITE);
 }
@@ -433,6 +425,12 @@ static void draw_hud(quark_t* quark, ui_t* ui, player_t* player) {
         ui_draw_text_thick(quark, ui, text,
             (vec2){r_width.value - width - 32.0f, r_height.value - font_size},
             font_size, 5, (quark->player->health <= 30.0f) ? COLOR_RED : COLOR_WHITE);
+
+        sprintf(text, "%d++", (int)ceilf(quark->player->shield));
+        width = ui_measure_text(text, font_size);
+        ui_draw_text_thick(quark, ui, text,
+            (vec2){r_width.value - width - 180.0f, r_height.value - font_size},
+            font_size, 5, (quark->player->shield <= 30.0f) ? COLOR_RED : COLOR_WHITE);
     }
     
     if (!edit_mode.value) {

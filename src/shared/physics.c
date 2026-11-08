@@ -3,6 +3,7 @@
 
 void phys_init(quark_t* quark, physics_t* physics) {
     b3WorldDef world_def = b3DefaultWorldDef();
+    world_def.gravity = (b3Vec3){0.0f, -9.82f, 0.0f};
     physics->world_id = b3CreateWorld(&world_def);
 }
 
@@ -10,16 +11,52 @@ void phys_free(quark_t* quark, physics_t* physics) {
     b3DestroyWorld(physics->world_id);
 }
 
-rigid_body_t* phys_create_rigid_body(quark_t* quark, physics_t* physics, vec3 position) {
-    rigid_body_t* body = malloc(sizeof(rigid_body_t));
-    b3BodyDef def = b3DefaultBodyDef();
-    def.position.x = position[0];
-    def.position.y = position[1];
-    def.position.z = position[2];
+void phys_tick(quark_t* quark, physics_t* physics) {
+    b3World_Step(physics->world_id, 1.0f / 60.0f, 4);
 
-    body->id = b3CreateBody(physics->world_id, &def);
+    for (size_t i = 0; i < quark->map.entlist.len; i++) {
+		entity_t* entity = quark->map.entlist.ents[i];
+		if (!entity || !entity->body) continue;
+
+        b3Vec3 position = b3Body_GetPosition(entity->body->id);
+        entity->position[0] = position.x;
+        entity->position[1] = position.y;
+        entity->position[2] = position.z;
+    }
+}
+
+rigid_body_t* phys_create_rigid_body(
+    quark_t* quark,
+    physics_t* physics,
+    int entity_id,
+    vec3 position,
+    bool dynamic)
+{
+    rigid_body_t* body = malloc(sizeof(rigid_body_t));
+    b3BodyDef body_def = b3DefaultBodyDef();
+    body_def.position.x = position[0];
+    body_def.position.y = position[1];
+    body_def.position.z = position[2];
+
+    if (dynamic)
+        body_def.type = b3_dynamicBody;
+
+    body->id = b3CreateBody(physics->world_id, &body_def);
     b3ShapeDef shape_def = b3DefaultShapeDef();
-    b3BoxHull box = b3MakeBoxHull(0.6f, 0.6f, 0.6f);
+    shape_def.density = 1.0f;
+    shape_def.baseMaterial.friction = 1.0f;
+
+    entity_t* entity = quark->map.entlist.ents[entity_id];
+    if (!entity)
+        return NULL;
+
+    vec3 size;
+    //bbox_get_size(&entity->local_bbox, size);
+    size[0] = 10.0f;
+    size[1] = 0.5f;
+    size[2] = 10.0f;
+
+    b3BoxHull box = b3MakeBoxHull(size[0], size[1], size[2]);
     b3CreateHullShape(body->id, &shape_def, &box.base);
     return body;
 }

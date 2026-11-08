@@ -19,31 +19,31 @@ static void setup_rig(quark_t* quark, player_t* player, body_t* body) {
         quark, "res/meshes/player/head.obj", (vec3){0.0f, 0.6f, 0.0f}, &body->parts[BODY_TORSO]);
     
     body->parts[BODY_LEFT_UPPER_ARM] = create_body_part(
-        quark, "res/meshes/player/upper_leg.obj", (vec3){-0.25f, 0.25f, 0.0f},
+        quark, "res/meshes/player/upper_leg.obj", (vec3){-0.25f, 0.3f, 0.0f},
         &body->parts[BODY_TORSO]);
     body->parts[BODY_LEFT_LOWER_ARM] = create_body_part(
-        quark, "res/meshes/player/upper_leg.obj", (vec3){-0.0f, -0.25f, 0.0f},
+        quark, "res/meshes/player/upper_leg.obj", (vec3){-0.0f, -0.3f, 0.0f},
             &body->parts[BODY_LEFT_UPPER_ARM]);
     
     body->parts[BODY_RIGHT_UPPER_ARM] = create_body_part(
-        quark, "res/meshes/player/upper_leg.obj", (vec3){0.25f, 0.25f, 0.0f},
+        quark, "res/meshes/player/upper_leg.obj", (vec3){0.25f, 0.3f, 0.0f},
         &body->parts[BODY_TORSO]);
     body->parts[BODY_RIGHT_LOWER_ARM] = create_body_part(
-        quark, "res/meshes/player/upper_leg.obj", (vec3){0.0, -0.25f, 0.0f},
+        quark, "res/meshes/player/upper_leg.obj", (vec3){0.0, -0.3f, 0.0f},
             &body->parts[BODY_RIGHT_UPPER_ARM]);
     
     body->parts[BODY_LEFT_UPPER_LEG] = create_body_part(
         quark, "res/meshes/player/upper_leg.obj", (vec3){-0.1f, -0.1f, 0.0f},
         &body->parts[BODY_TORSO]);
     body->parts[BODY_LEFT_LOWER_LEG] = create_body_part(
-        quark, "res/meshes/player/lower_leg.obj", (vec3){0.0f, -0.35f, 0.0f},
+        quark, "res/meshes/player/lower_leg.obj", (vec3){0.0f, -0.3f, 0.0f},
             &body->parts[BODY_LEFT_UPPER_LEG]);
     
     body->parts[BODY_RIGHT_UPPER_LEG] = create_body_part(
         quark, "res/meshes/player/upper_leg.obj", (vec3){0.1f, -0.1f, 0.0f},
         &body->parts[BODY_TORSO]);
     body->parts[BODY_RIGHT_LOWER_LEG] = create_body_part(
-        quark, "res/meshes/player/lower_leg.obj", (vec3){0.0f, -0.35f, 0.0f},
+        quark, "res/meshes/player/lower_leg.obj", (vec3){0.0f, -0.3f, 0.0f},
             &body->parts[BODY_RIGHT_UPPER_LEG]);
 }
 

@@ -1,6 +1,18 @@
 #include "entity.h"
 #include "quark.h"
 
+static void compute_bounding_box(quark_t* quark, entity_t* entity) {
+	mesh_t* mesh = entity_get_mesh(quark, entity);
+	if (!mesh) return;
+	
+	entity->local_bbox = mesh->bbox;
+
+	entity->world_bbox = entity->local_bbox;
+	entity->world_bbox = bbox_rotate(&entity->world_bbox, entity->rotation);
+	entity->world_bbox = bbox_scale(&entity->world_bbox, entity->scale);
+	entity->world_bbox = bbox_translate(&entity->world_bbox, entity->position);
+}
+
 void entity_init_common(
 	quark_t* quark, const char* name, entity_type_t type, vec3 position, entity_t** out)
 {
@@ -22,8 +34,7 @@ void entity_init_common(
 
 	entity->local_bbox = (bbox_t){0};
 	entity->world_bbox = (bbox_t){0};
-
-	entity->body = phys_create_rigid_body(quark, &quark->physics, position);
+	entity->body = NULL;
 
 	entity->spawn_time = quark->time;
 
@@ -44,6 +55,11 @@ void entity_add_child(quark_t* quark, entity_t* entity, int child_id) {
 
 	entity->children = realloc(entity->children, (entity->nchildren + 1) * sizeof(int));
 	entity->children[entity->nchildren++] = child_id;
+}
+
+void entity_add_rigid_body(quark_t* quark, entity_t* entity, bool dynamic) {
+	entity->body = phys_create_rigid_body(
+		quark, &quark->physics, entity->id, entity->position, dynamic);
 }
 
 mesh_t* entity_get_mesh(quark_t* quark, entity_t* entity) {
@@ -109,6 +125,9 @@ bool entity_get_drawcall(quark_t* quark, entity_t* entity, drawcall_t* drawcall)
 		return false;
 
 	if (entity->type == ENTITY_MESH && !entity->data.mesh.is_visible)
+		return false;
+
+	if (entity->type == ENTITY_PICKUP && !entity->data.pickup.can_pickup)
 		return false;
 	
 	drawcall->entity = malloc(strlen(entity->name));
@@ -179,18 +198,6 @@ void entlist_free(quark_t* quark, entlist_t* entlist) {
 
 	info(quark, "freed %d entities", entlist->len);
 	free(entlist->ents);
-}
-
-static void compute_bounding_box(quark_t* quark, entity_t* entity) {
-	mesh_t* mesh = entity_get_mesh(quark, entity);
-	if (!mesh) return;
-	
-	entity->local_bbox = mesh->bbox;
-
-	entity->world_bbox = entity->local_bbox;
-	entity->world_bbox = bbox_rotate(&entity->world_bbox, entity->rotation);
-	entity->world_bbox = bbox_scale(&entity->world_bbox, entity->scale);
-	entity->world_bbox = bbox_translate(&entity->world_bbox, entity->position);
 }
 
 void entlist_tick(quark_t* quark, entlist_t* entlist) {

@@ -125,7 +125,12 @@ void r_add_partfx_projectile_trail(
         1.0f, 0.5f, 0.5f, PARTICLE_FADE_OUT);
 }
 
-void r_add_partfx_hit_ground(quark_t* quark, renderer_t* renderer, vec3 position, material_t* material) {
+void r_add_partfx_hit_ground(
+    quark_t* quark,
+    renderer_t* renderer,
+    vec3 position,
+    material_t* material)
+{
     for (int i = 0; i < 20 * r_particles.value; i++) {
         vec3 velocity = {
             random(-2.0f, 2.0f),

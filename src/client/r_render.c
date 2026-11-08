@@ -367,6 +367,9 @@ static void render_point_lights(quark_t* quark, renderer_t* renderer) {
         if (!entity || entity->type != ENTITY_POINT_LIGHT) continue;
         entity_point_light_t* point_light = &entity->data.point_light;
 
+        if (!point_light->is_visible)
+            continue;
+
         r_set_vec3(quark, renderer, "light.position", entity->position);
         r_set_vec3(quark, renderer, "light.color", point_light->color);
 

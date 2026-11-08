@@ -58,7 +58,7 @@ static void tick_item_anim(quark_t* quark, player_t* player, item_t* item) {
     }
 
     if (player->move_mode == MOVE_SPRINT) {
-        float anim_speed = 7.0f;
+        float anim_speed = 3.0f;
         player->item_anim_angles[0] = interp_to(player->item_anim_angles[0], 35.0f, anim_speed,
             quark->dt);
         player->item_anim_angles[1] = interp_to(player->item_anim_angles[1], 10.0f, anim_speed,
@@ -69,7 +69,7 @@ static void tick_item_anim(quark_t* quark, player_t* player, item_t* item) {
         player->item_anim[1] = -0.2f;
         
     } else {
-        float reset_speed = 7.0f;
+        float reset_speed = 5.0f;
         player->item_anim_angles[0] = interp_to(player->item_anim_angles[0], 0.0f, reset_speed,
             quark->dt);
         player->item_anim_angles[1] = interp_to(player->item_anim_angles[1], 0.0f, reset_speed,

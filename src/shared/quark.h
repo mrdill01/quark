@@ -79,7 +79,6 @@ typedef struct quark_t {
     physics_t physics;
     server_t server;
     client_t client;
-
     audio_t audio;
 
     ui_state_t ui_state;

@@ -7,7 +7,7 @@ typedef struct quark_t quark_t;
 typedef struct player_t player_t;
 
 typedef enum {
-    GAME_MODE_CTT,
+    GAME_MODE_CTF,
 } game_mode_type_t;
 
 typedef enum {

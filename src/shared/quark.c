@@ -150,7 +150,7 @@ void quark_init(quark_t* quark) {
 	cl_init(quark, &quark->client);
 
 	quark->ui_state = UI_STATE_MAIN_MENU;
-	gm_start(quark, &quark->gm, GAME_MODE_CTT);
+	gm_start(quark, &quark->gm, GAME_MODE_CTF);
 
 	for (int i = 0; i < NET_MAX_PLAYERS; i++)
 		quark->players[i] = NULL;
@@ -173,6 +173,7 @@ void quark_tick(quark_t* quark) {
 		sv_timescale.value;
 	quark->time += quark->dt;
 
+	phys_tick(quark, &quark->physics);
 	sv_tick(quark, &quark->server);
 	cl_tick(quark, &quark->client);
 	gm_tick(quark, &quark->gm);
@@ -226,8 +227,6 @@ void quark_set_progress(quark_t* quark, const char* msg, ...) {
 	va_end(args);
 
 	strcpy(quark->progress_text, buffer);
-	printf("%s\n", buffer);
-
 	if (quark->renderer.init) {
 		ui_render(quark, &quark->renderer.ui, &quark->renderer);
 		r_reset_stats(quark, &quark->renderer);

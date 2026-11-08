@@ -30,6 +30,7 @@ typedef struct body_part_t {
     mesh_t* mesh;
     vec3 offset;
     quat rotation;
+    mat4 matrix;
     struct body_part_t* parent;
 } body_part_t;
 
@@ -101,6 +102,7 @@ typedef struct player_t {
     vec3 item_anim;
     vec3 item_anim_angles;
     float health;
+    float shield;
     float death_time;
     body_t body;
     editor_t editor;

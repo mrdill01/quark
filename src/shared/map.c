@@ -86,6 +86,7 @@ void map_create_default(quark_t* quark, map_t* map) {
     mesh_t* pipe_bend_mesh = mesh_load(quark, "res/meshes/pipe_bend.obj");
     mesh_t* wall_light = mesh_load(quark, "res/meshes/wall_light.obj");
     mesh_t* coin_mesh = mesh_load(quark, "res/meshes/items/coin.obj");
+    mesh_t* armor_mesh = mesh_load(quark, "res/meshes/items/armor.obj");
     
     material_t* crate = material_load(quark,
         "crate",
@@ -376,10 +377,12 @@ void map_create_default(quark_t* quark, map_t* map) {
     entity_init_mesh(quark, "floor", 0.0f, -0.5f, 0.0f, floor_mesh, &entity);
     entity_mesh_set_material(quark, entity, metal, 0);
     entlist_add(quark, &map->entlist, entity);
+    entity_add_rigid_body(quark, entity, false);
 
     entity_init_mesh(quark, "floor(2)", 0.0f, -0.5f, -8.0f, floor_mesh, &entity);
     entity_mesh_set_material(quark, entity, metal2, 0);
     entlist_add(quark, &map->entlist, entity);
+    entity_add_rigid_body(quark, entity, false);
 
     entity_init_mesh(quark, "floor(3)", 16.0f, -0.5f, -8.0f, floor_mesh, &entity);
     entity_mesh_set_material(quark, entity, wood2, 0);
@@ -455,8 +458,8 @@ void map_create_default(quark_t* quark, map_t* map) {
         entlist_add(quark, &map->entlist, entity);
     }
 
-    for (int i = 0; i < 48; i++) {
-        float x = random(28.0f, 44.0f);
+    for (int i = 0; i < 80; i++) {
+        float x = random(28.0f, 52.0f);
         float y = -0.5f;
         float z = random(12.0f, 28.0f);
 
@@ -471,6 +474,8 @@ void map_create_default(quark_t* quark, map_t* map) {
         entity_mesh_set_material(quark, entity, material, 0);
         glm_quat(entity->rotation, rad(random(-180.0f, 180.0f)), 0.0f, 1.0f, 0.0f);
         glm_vec3_scale(entity->scale, random(0.5f, 1.5f), entity->scale);
+        if (material == cactus2)
+            entity->data.mesh.enable_collision = false;
         entlist_add(quark, &map->entlist, entity);
     }
 
@@ -478,11 +483,19 @@ void map_create_default(quark_t* quark, map_t* map) {
     entity_mesh_set_material(quark, entity, sand, 0);
     entlist_add(quark, &map->entlist, entity);
 
-     entity_init_mesh(quark, "floor(8)", 32.0f, -0.5f, 24.0f, floor_mesh, &entity);
+    entity_init_mesh(quark, "floor(8)", 48.0f, -0.5f, 24.0f, floor_mesh, &entity);
+    entity_mesh_set_material(quark, entity, sand, 0);
+    entlist_add(quark, &map->entlist, entity);
+
+    entity_init_mesh(quark, "floor(8)", 32.0f, -0.5f, 24.0f, floor_mesh, &entity);
     entity_mesh_set_material(quark, entity, sand, 0);
     entlist_add(quark, &map->entlist, entity);
 
     entity_init_mesh(quark, "floor(8)", 40.0f, -0.5f, 16.0f, floor_mesh, &entity);
+    entity_mesh_set_material(quark, entity, sand, 0);
+    entlist_add(quark, &map->entlist, entity);
+
+    entity_init_mesh(quark, "floor(8)", 48.0f, -0.5f, 16.0f, floor_mesh, &entity);
     entity_mesh_set_material(quark, entity, sand, 0);
     entlist_add(quark, &map->entlist, entity);
 
@@ -584,6 +597,14 @@ void map_create_default(quark_t* quark, map_t* map) {
     entity_mesh_set_material(quark, entity, ice, 0);
     entlist_add(quark, &map->entlist, entity);
 
+    entity_init_mesh(quark, "floor(30)", 40.0f, -0.5f, 48.0f, floor_mesh, &entity);
+    entity_mesh_set_material(quark, entity, ice, 0);
+    entlist_add(quark, &map->entlist, entity);
+
+    entity_init_mesh(quark, "floor(31)", 32.0f, -0.5f, 48.0f, floor_mesh, &entity);
+    entity_mesh_set_material(quark, entity, ice, 0);
+    entlist_add(quark, &map->entlist, entity);
+
     for (int i = 0; i < 10; i++) {
         vec3 position = {
             random(28.0f, 44.0f),
@@ -595,7 +616,7 @@ void map_create_default(quark_t* quark, map_t* map) {
         entlist_add(quark, &map->entlist, entity);
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 20; i++) {
         vec3 position = {
             random(28.0f, 44.0f), -0.5f, random(28.0f, 44.0f)};
         entity_init_mesh(quark, "rock", position[0], position[1], position[2], rock_mesh, &entity);
@@ -682,6 +703,7 @@ void map_create_default(quark_t* quark, map_t* map) {
     entity_mesh_set_material(quark, entity, wood, 0);
     entity_mesh_set_material(quark, entity, tile2, 1);
     entlist_add(quark, &map->entlist, entity);
+    entity_add_rigid_body(quark, entity, true);
 
     entity_init_mesh(quark, "barrel", 1.5f, 0.0f, 0.0f, barrel_mesh, &entity);
     entity_mesh_set_material(quark, entity, barrel, 0);
@@ -1169,6 +1191,11 @@ void map_create_default(quark_t* quark, map_t* map) {
         entity->data.mesh.enable_collision = false;
         entlist_add(quark, &map->entlist, entity);
     }
+
+    entity_init_pickup(quark, "armor", (vec3){26.5f, -0.5f, -1.9f},
+        armor_mesh, PICKUP_ARMOR, quark->audio.pickup_coin_sound, &entity);
+    entity_pickup_set_material(quark, entity, metal, 0);
+    entlist_add(quark, &map->entlist, entity);
 
     /*entity_init_terrain(quark, "terrain",
         (vec3){-128.0f, -2.0f, -128.0f},

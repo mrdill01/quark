@@ -50,8 +50,14 @@ typedef struct trace_result_t {
 
 void phys_init(quark_t* quark, physics_t* physics);
 void phys_free(quark_t* quark, physics_t* physics);
+void phys_tick(quark_t* quark, physics_t* physics);
 
-rigid_body_t* phys_create_rigid_body(quark_t* quark, physics_t* physics, vec3 position);
+rigid_body_t* phys_create_rigid_body(
+    quark_t* quark,
+    physics_t* physics,
+    int entity_id,
+    vec3 position,
+    bool dynamic);
 void phys_free_rigid_body(quark_t* quark, physics_t* physics, rigid_body_t* body);
 
 bool phys_line_trace(

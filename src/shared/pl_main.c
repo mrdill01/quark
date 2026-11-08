@@ -64,6 +64,7 @@ player_t* player_new(quark_t* quark, int id, bool is_bot) {
     glm_vec3_zero(player->item_anim);
     glm_vec3_zero(player->item_anim_angles);
     player->health = 100.0f;
+    player->shield = 0.0f;
     player->death_time = 0.0f;
     player_init_body(quark, player);
     edit_init(quark, &player->editor);
@@ -267,9 +268,9 @@ static void hit_ground(quark_t* quark, player_t* player, trace_result_t trace) {
     if (player->velocity[1] < -8.0f && player->water_level == 0.0f) {
         float fall_damage = powf(-player->velocity[1], 1.25f);
         fall_damage = 0.0f;
-        player_hurt(quark, player, fall_damage);
-
+        
         if (fall_damage > 0.0f) {
+            player_hurt(quark, player, fall_damage);
             a_play(quark, &quark->audio, quark->audio.fall_damage_sound,
                 player->position, random(0.85f, 1.15f));
         }
@@ -563,11 +564,10 @@ static void tick_step_sounds(quark_t* quark, player_t* player) {
     vec3 velocity;
     glm_vec3_copy(player->velocity, velocity);
     velocity[1] = 0.0f;
-    float xz_speed = glm_vec3_dot(velocity, velocity);
 
     bool play_sound = player->is_grounded &&
         quark->time - player->last_step_time >= player_get_step_rate(quark, player) &&
-        xz_speed > 1.0f;
+        player_get_xz_speed(quark, player) > 2.0f;
     
     if (play_sound) {
         vec3 position;
@@ -722,7 +722,7 @@ void player_hurt(quark_t* quark, player_t* player, float damage) {
     player->health -= damage;
     player->health = clamp(player->health, 0.0f, 100.0f);
 
-    a_play(quark, &quark->audio, quark->audio.hurt_sound, player->position, random(0.95f, 1.05f    ));
+    a_play(quark, &quark->audio, quark->audio.hurt_sound, player->position, random(0.95f, 1.05f));
 
     if (player_is_dead(player)) {
         player->death_time = quark->time;
@@ -743,6 +743,7 @@ void player_respawn(quark_t* quark, player_t* player) {
     glm_vec3_copy((vec3){0.0f, 90.0f, 0.0f}, quark->renderer.camera.angles);
     player->is_thirdperson = r_third_person.value;
     player->health = 100.0f;
+    player->shield = 100.0f;
     quark->ui_state = UI_STATE_IN_GAME;
     player_teleport(quark, player, (vec3){0.0f, 2.0f, -4.5f});
     

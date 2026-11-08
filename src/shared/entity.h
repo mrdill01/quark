@@ -56,6 +56,7 @@ typedef struct {
 typedef enum {
     PICKUP_COIN,
     PICKUP_AMMO,
+    PICKUP_ARMOR,
 } pickup_type_t;
 
 typedef struct {
@@ -63,6 +64,9 @@ typedef struct {
     material_t* materials[MAX_MATERIALS];
     pickup_type_t type;
     void* pickup_sound;
+    bool can_pickup;
+    float pickup_time;
+    int point_light_id;
 } entity_pickup_t;
 
 typedef enum {
@@ -103,6 +107,7 @@ typedef struct {
 typedef struct {
     vec3 color;
     float extinguish;
+    int is_visible;
 } entity_point_light_t;
 
 typedef struct {
@@ -120,7 +125,6 @@ typedef struct {
 
     bbox_t local_bbox;
     bbox_t world_bbox;
-
     rigid_body_t* body;
 
     float spawn_time;
@@ -189,6 +193,7 @@ void entity_tick_vehicle_helicopter(quark_t* quark, entity_t* entity, veh_helico
 void entity_tick_point_light(quark_t* quark, entity_t* entity, entity_point_light_t* point_light);
 
 void entity_add_child(quark_t* quark, entity_t* entity, int child_id);
+void entity_add_rigid_body(quark_t* quark, entity_t* entity, bool dynamic);
 
 void entity_mesh_set_material(quark_t* quark, entity_t* entity, material_t* material, int slot);
 void entity_pickup_set_material(quark_t* quark, entity_t* entity, material_t* material, int slot);
